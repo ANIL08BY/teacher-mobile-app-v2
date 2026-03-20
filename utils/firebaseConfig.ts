@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+// @ts-ignore
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Senin Firebase Projenin Gizli Anahtarları
 const firebaseConfig = {
@@ -17,6 +19,8 @@ const app = initializeApp(firebaseConfig);
 
 // Veritabanı ve Kimlik Doğrulama Servislerini Dışa Aktar
 export const db = getFirestore(app);
-export const auth = getAuth(app);
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
 
 export const firebaseApp = initializeApp(firebaseConfig);

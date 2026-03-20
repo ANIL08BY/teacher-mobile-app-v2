@@ -45,7 +45,7 @@ export default function LoginScreen() {
             setShowSplash(false);
           } else {
             // Görmediyse, Onboarding sayfasına yönlendir
-            router.replace("/onboarding" as any);
+            router.replace("/(auth)/onboarding" as any);
           }
         }, 2500);
       } catch (error) {
