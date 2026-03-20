@@ -18,7 +18,8 @@ import Animated, {
   FadeInDown,
   ZoomIn,
 } from "react-native-reanimated";
-import Toast from "react-native-toast-message"; // 🔥 TOAST IMPORT EDİLDİ
+import Toast from "react-native-toast-message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -29,12 +30,31 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
 
-  // Açılış Ekranı (Splash Screen) Zamanlayıcısı
+  // Açılış Ekranı ve Onboarding Kontrolü
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500); // 2.5 saniye sonra Splash kaybolur
-    return () => clearTimeout(timer);
+    const checkOnboardingAndSplash = async () => {
+      try {
+        // Arka planda kullanıcının tanıtımı görüp görmediğini kontrol et
+        const hasSeenOnboarding =
+          await AsyncStorage.getItem("hasSeenOnboarding");
+
+        // 2.5 saniye animasyonu beklet
+        setTimeout(() => {
+          if (hasSeenOnboarding === "true") {
+            // Eğer gördüyse, animasyonu bitir ve Login formunu göster
+            setShowSplash(false);
+          } else {
+            // Görmediyse, Onboarding sayfasına yönlendir
+            router.replace("/onboarding" as any);
+          }
+        }, 2500);
+      } catch (error) {
+        // Hata olursa varsayılan olarak Login formunu göster
+        setTimeout(() => setShowSplash(false), 2500);
+      }
+    };
+
+    checkOnboardingAndSplash();
   }, []);
 
   const handleLogin = async () => {
@@ -50,7 +70,6 @@ export default function LoginScreen() {
     try {
       await login(email, password);
 
-      // 🔥 BAŞARILI GİRİŞ TOAST BİLDİRİMİ
       Toast.show({
         type: "success",
         text1: "Hoş Geldiniz",
@@ -59,7 +78,6 @@ export default function LoginScreen() {
 
       router.replace("/(drawer)");
     } catch (error: any) {
-      // 🔥 HATALI GİRİŞ TOAST BİLDİRİMİ (Kaba alert yerine)
       Toast.show({
         type: "error",
         text1: "Giriş Başarısız",
@@ -71,7 +89,7 @@ export default function LoginScreen() {
     }
   };
 
-  // 🔥 1. AŞAMA: KARŞILAMA EKRANI (SPLASH SCREEN)
+  // 1. AŞAMA: KARŞILAMA EKRANI (SPLASH SCREEN)
   if (showSplash) {
     return (
       <Animated.View
@@ -100,7 +118,7 @@ export default function LoginScreen() {
     );
   }
 
-  // 🔥 2. AŞAMA: YENİ GİRİŞ EKRANI (LOGIN)
+  // 2. AŞAMA: YENİ GİRİŞ EKRANI (LOGIN)
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -110,7 +128,6 @@ export default function LoginScreen() {
         entering={FadeInDown.duration(800)}
         style={styles.loginBox}
       >
-        {/* YENİ LOGO VE İSİM */}
         <View style={styles.loginHeader}>
           <View style={styles.smallLogoContainer}>
             <Ionicons name="school" size={50} color="#1a0ce8" />
@@ -170,7 +187,6 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
-        {/* ALT LİNKLER */}
         <View style={styles.footerLinks}>
           <TouchableOpacity onPress={() => router.push("/register")}>
             <Text style={styles.linkTextBlue}>Hesabın yok mu? Kayıt Ol</Text>
@@ -248,7 +264,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: "center",
   },
-
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -262,7 +277,6 @@ const styles = StyleSheet.create({
   },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, fontSize: 16, color: "#1F2937" },
-
   button: {
     backgroundColor: "#4F46E5",
     padding: 16,
@@ -272,7 +286,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonText: { color: "white", fontSize: 18, fontWeight: "bold" },
-
   footerLinks: {
     flexDirection: "row",
     justifyContent: "space-between",

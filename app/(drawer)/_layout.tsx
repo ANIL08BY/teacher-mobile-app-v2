@@ -79,12 +79,24 @@ export default function DrawerLayout() {
           ),
         }}
       />
-
+      {/* HAFTALIK PROGRAMLAR */}
       <Drawer.Screen
         name="schedule"
         options={{
           drawerLabel: "Ders & Nöbet",
           title: "Haftalık Programlar",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="time-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* TAKVİM */}
+      <Drawer.Screen
+        name="calendar"
+        options={{
+          drawerLabel: "Okul Takvimi",
+          title: "Etkinlik Takvimi",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
