@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "teacher-mobile-app",
+    "owner": "anil84",
     "slug": "teacher-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,10 +17,13 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "monochromeImage": "./assets/images/android-icon-monochrome.png",
+        "package": "com.anil84.teachermobileapp"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
+      }
+
     },
     "web": {
       "output": "static",
@@ -43,6 +47,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5ca70ce0-aa4d-4423-a458-ea855d2eb35f"
+      }
     }
   }
-}
