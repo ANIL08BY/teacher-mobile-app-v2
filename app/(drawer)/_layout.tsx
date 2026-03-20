@@ -128,6 +128,18 @@ export default function DrawerLayout() {
         }}
       />
 
+      {/* ANKETLER */}
+      <Drawer.Screen
+        name="polls"
+        options={{
+          drawerLabel: "Anketler",
+          title: "Anket Sistemi",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="pie-chart-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
       {/* İZİN İŞLEMLERİ */}
       <Drawer.Screen
         name="leave-requests"
@@ -172,6 +184,18 @@ export default function DrawerLayout() {
           title: "Toplantı Kararları",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* YARDIM */}
+      <Drawer.Screen
+        name="helpdesk"
+        options={{
+          drawerLabel: "Arıza Bildirimi",
+          title: "Yardım",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="construct-outline" size={size} color={color} />
           ),
         }}
       />
