@@ -104,9 +104,9 @@ export default function AboutScreen() {
           <Text style={styles.cardTitle}>Geliştirici</Text>
         </View>
         <Text style={styles.cardText}>
-          Bu proje, Anıl Bilgehan YÜZGEÇ tarafından modern React Native (Expo)
-          mimarisi kullanılarak, kullanıcı deneyimi (UX) ve temiz kod (Clean
-          Code) prensipleri göz önünde bulundurularak geliştirilmiştir.
+          Bu proje, modern React Native (Expo) mimarisi kullanılarak, kullanıcı
+          deneyimi (UX) ve temiz kod (Clean Code) prensipleri göz önünde
+          bulundurularak geliştirilmiştir.
         </Text>
       </Animated.View>
 

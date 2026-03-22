@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Toast from "react-native-toast-message"; // 🔥 TOAST IMPORT EDİLDİ
+import Toast from "react-native-toast-message";
 
 export default function ExamScheduleScreen() {
   // --- CONTEXT (BEYİN) ---
@@ -78,7 +78,7 @@ export default function ExamScheduleScreen() {
 
   const removeExam = (exam: string) => {
     setExamList(examList.filter((item) => item !== exam));
-    // 🔥 YENİ: Sınav silindiğinde bilgi veren Toast
+    //  Sınav silindiğinde bilgi veren Toast
     Toast.show({
       type: "info",
       text1: "Sınav Silindi",
@@ -103,7 +103,7 @@ export default function ExamScheduleScreen() {
       const result = await generateExamSchedule(examList);
       setSchedule(result);
 
-      // 🔥 ALERT YERİNE TOAST BAŞARI MESAJI
+      // ALERT YERİNE TOAST BAŞARI MESAJI
       Toast.show({
         type: "success",
         text1: "✨ Mükemmel Planlama",
@@ -175,7 +175,7 @@ export default function ExamScheduleScreen() {
         mimeType: "application/pdf",
       });
 
-      // 🔥 YENİ: PDF PAYLAŞILDIĞINDA BAŞARI TOASTI
+      // PDF PAYLAŞILDIĞINDA BAŞARI TOASTI
       Toast.show({
         type: "success",
         text1: "📄 Takvim Çıkarıldı",
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   aiButtonDisabled: {
-    backgroundColor: "#C4B5FD",
+    backgroundColor: "#cefdb5",
   },
   aiButtonText: {
     color: "#FFF",

@@ -10,7 +10,7 @@ import {
 import { useTeachers } from "../../context/TeacherContext";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
-import Toast from "react-native-toast-message"; // 🔥 TOAST IMPORT EDİLDİ
+import Toast from "react-native-toast-message";
 
 export default function DepartmentHeadScreen() {
   const { teachers, selectDepartmentHead, assignDepartmentHead } =
@@ -80,7 +80,7 @@ export default function DepartmentHeadScreen() {
     if (winner) {
       await assignDepartmentHead(selectedBranch, winner.id);
 
-      // 🔥 YENİ: ATAMA BAŞARILI TOAST BİLDİRİMİ
+      // ATAMA BAŞARILI TOAST BİLDİRİMİ
       Toast.show({
         type: "success",
         text1: "✨ Zümre Başkanı Atandı",
@@ -148,7 +148,7 @@ export default function DepartmentHeadScreen() {
           <TouchableOpacity
             style={[
               styles.aiButton,
-              isAnalyzing && { backgroundColor: "#C4B5FD" },
+              isAnalyzing && { backgroundColor: "#aff394" },
             ]}
             onPress={handleAISelection}
             disabled={isAnalyzing}
