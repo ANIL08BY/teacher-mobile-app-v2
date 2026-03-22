@@ -35,7 +35,7 @@ export default function AboutScreen() {
         </Text>
       </Animated.View>
 
-      {/* VİZEDEN SONRAKİ EKLENTİLER (HOCANIN İSTEDİĞİ LİSTE) */}
+      {/* VİZEDEN SONRAKİ EKLENTİLER */}
       <Animated.View entering={FadeInUp.delay(300)} style={styles.card}>
         <View style={styles.cardHeader}>
           <Ionicons name="layers-outline" size={24} color="#34C759" />
@@ -104,9 +104,9 @@ export default function AboutScreen() {
           <Text style={styles.cardTitle}>Geliştirici</Text>
         </View>
         <Text style={styles.cardText}>
-          Bu proje, modern React Native (Expo) mimarisi kullanılarak, kullanıcı
-          deneyimi (UX) ve temiz kod (Clean Code) prensipleri göz önünde
-          bulundurularak geliştirilmiştir.
+          Bu proje, Anıl Bilgehan YÜZGEÇ modern React Native (Expo) mimarisi
+          kullanılarak, kullanıcı deneyimi (UX) ve temiz kod (Clean Code)
+          prensipleri göz önünde bulundurularak geliştirilmiştir.
         </Text>
       </Animated.View>
 
@@ -118,14 +118,15 @@ export default function AboutScreen() {
           padding: 16,
           borderRadius: 12,
           marginVertical: 10,
+          marginBottom: 40,
         }}
         onPress={() =>
           Linking.openURL(
-            "https://www.termsfeed.com/live/ornek-gizlilik-politikasi",
+            "https://sites.google.com/view/okul-plus-privacy/home",
           )
         }
       >
-        <Ionicons name="shield-checkmark" size={24} color="#1410eb" />
+        <Ionicons name="shield-checkmark" size={24} color="#007AFF" />
         <Text
           style={{
             marginLeft: 12,

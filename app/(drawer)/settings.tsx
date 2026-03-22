@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import i18n from "../../utils/i18n";
 import { useNavigation } from "expo-router";
 import * as Linking from "expo-linking";
-import Toast from "react-native-toast-message"; // 🔥 TOAST IMPORT EDİLDİ
+import Toast from "react-native-toast-message";
 
 export default function SettingsScreen() {
   const { resetDatabase, clearCache, teachers } = useTeachers();
@@ -342,30 +342,36 @@ export default function SettingsScreen() {
       </Pressable>
 
       <Pressable
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: "#F2F2F7",
-          padding: 16,
-          borderRadius: 12,
-          marginVertical: 10,
-        }}
+        style={[
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#F2F2F7",
+            padding: 16,
+            borderRadius: 12,
+            marginVertical: 10,
+          },
+          isDark && { backgroundColor: "#333" }, // Karanlık mod uyumu eklendi
+        ]}
         onPress={() =>
           Linking.openURL(
-            "https://www.termsfeed.com/live/ornek-gizlilik-politikasi",
+            "https://sites.google.com/view/okul-plus-privacy/home",
           )
         }
       >
-        <Ionicons name="shield-checkmark" size={24} color="#1613e0" />
+        <Ionicons name="shield-checkmark" size={24} color="#007AFF" />
         <Text
-          style={{
-            marginLeft: 12,
-            fontSize: 16,
-            fontWeight: "600",
-            color: "#1C1C1E",
-          }}
+          style={[
+            {
+              marginLeft: 12,
+              fontSize: 16,
+              fontWeight: "600",
+              color: "#1C1C1E",
+            },
+            isDark && { color: "#FFFFFF" },
+          ]}
         >
-          Gizlilik Politikası
+          {locale === "tr" ? "Gizlilik Politikası" : "Privacy Policy"}
         </Text>
       </Pressable>
     </ScrollView>
