@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "teacher-mobile-app",
+    "name": "Okul+",
     "owner": "anil84",
-    "slug": "teacher-mobile-app",
+    "slug": "okul-plus",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -18,7 +18,7 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png",
-        "package": "com.anil84.teachermobileapp"
+        "package": "com.anilbilgehan.okulplus"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
