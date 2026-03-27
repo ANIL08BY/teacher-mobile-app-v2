@@ -26,11 +26,29 @@ import Animated, {
 import { Swipeable } from "react-native-gesture-handler";
 import { generateFairDutySchedule } from "../../utils/aiService";
 import * as Location from "expo-location";
-import MapView, { Marker, Callout } from "react-native-maps";
+import MapView, { Marker, Callout, Circle } from "react-native-maps";
 import Toast from "react-native-toast-message";
 import { registerForPushNotificationsAsync } from "../../utils/notificationService";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig";
+
+const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) => {
+  const R = 6371e3; // Dünya yarıçapı (metre)
+  const p1 = (lat1 * Math.PI) / 180;
+  const p2 = (lat2 * Math.PI) / 180;
+  const dp = ((lat2 - lat1) * Math.PI) / 180;
+  const dl = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dp / 2) * Math.sin(dp / 2) +
+    Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c); // Metre cinsinden döndürür
+};
 
 export default function DashboardScreen() {
   // --- RESMİ TATİL HESAPLAMA MOTORU ---
@@ -106,6 +124,7 @@ export default function DashboardScreen() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [liveMapVisible, setLiveMapVisible] = useState(false);
+  const [mapType, setMapType] = useState("standard");
   const [myLocation, setMyLocation] = useState<{
     lat: number;
     lng: number;
@@ -296,13 +315,25 @@ export default function DashboardScreen() {
       const markers = todayTeachers.map((t) => {
         const randomLatOffset = (Math.random() - 0.5) * 0.002;
         const randomLngOffset = (Math.random() - 0.5) * 0.002;
+        const teacherLat = myLat + randomLatOffset;
+        const teacherLng = myLng + randomLngOffset;
+
+        // Mesafe hesaplama eklendi!
+        const distanceMeter = calculateDistance(
+          myLat,
+          myLng,
+          teacherLat,
+          teacherLng,
+        );
+
         return {
           id: t.id,
           name: `${t.name} ${t.surname}`,
           branch: t.branch,
           dutyArea: t.duty,
-          lat: myLat + randomLatOffset,
-          lng: myLng + randomLngOffset,
+          lat: teacherLat,
+          lng: teacherLng,
+          distance: distanceMeter, // Radardan gelen metre
         };
       });
 
@@ -645,9 +676,25 @@ export default function DashboardScreen() {
           >
             <Ionicons name="close" size={30} color="white" />
           </Pressable>
+
+          {/* 🔥 YENİ: Uydu / Normal Harita Geçiş Butonu */}
+          <Pressable
+            style={styles.mapTypeBtn}
+            onPress={() =>
+              setMapType(mapType === "standard" ? "hybrid" : "standard")
+            }
+          >
+            <Ionicons
+              name={mapType === "standard" ? "earth" : "map"}
+              size={26}
+              color="#007AFF"
+            />
+          </Pressable>
+
           {myLocation && (
             <MapView
               style={{ flex: 1 }}
+              mapType={mapType as any}
               initialRegion={{
                 latitude: myLocation.lat,
                 longitude: myLocation.lng,
@@ -657,23 +704,48 @@ export default function DashboardScreen() {
               showsUserLocation={true}
             >
               {activeDutyMarkers.map((marker) => (
-                <Marker
-                  key={marker.id}
-                  coordinate={{ latitude: marker.lat, longitude: marker.lng }}
-                >
-                  <View style={styles.customMarker}>
-                    <Ionicons name="person-circle" size={30} color="#FF3B30" />
-                  </View>
-                  <Callout tooltip={true}>
-                    <View style={styles.calloutView}>
-                      <Text style={styles.calloutTitle}>{marker.name}</Text>
-                      <Text style={styles.calloutText}>{marker.branch}</Text>
-                      <Text style={styles.calloutDuty}>
-                        📍 {marker.dutyArea}
-                      </Text>
+                <React.Fragment key={marker.id}>
+                  {/* 🔥 YENİ: Nöbet Alanı Çemberi (Geofencing) */}
+                  <Circle
+                    center={{ latitude: marker.lat, longitude: marker.lng }}
+                    radius={35} // 35 metrelik nöbet alanı
+                    fillColor="rgba(255, 59, 48, 0.2)" // Şeffaf kırmızı
+                    strokeColor="rgba(255, 59, 48, 0.8)" // Kırmızı kenarlık
+                    strokeWidth={2}
+                  />
+
+                  <Marker
+                    coordinate={{ latitude: marker.lat, longitude: marker.lng }}
+                  >
+                    <View style={styles.customMarker}>
+                      <Ionicons
+                        name="person-circle"
+                        size={34}
+                        color="#FF3B30"
+                      />
                     </View>
-                  </Callout>
-                </Marker>
+                    <Callout tooltip={true}>
+                      <View style={styles.calloutView}>
+                        <Text style={styles.calloutTitle}>{marker.name}</Text>
+                        <Text style={styles.calloutText}>{marker.branch}</Text>
+                        <Text style={styles.calloutDuty}>
+                          📍 {marker.dutyArea}
+                        </Text>
+                        {/* 🔥 YENİ: İdareciye Olan Uzaklık */}
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: "#EAB308",
+                            fontWeight: "bold",
+                            marginTop: 4,
+                          }}
+                        >
+                          📡 Size Uzaklık: {marker.distance} Metre
+                        </Text>
+                      </View>
+                    </Callout>
+                  </Marker>
+                </React.Fragment>
               ))}
             </MapView>
           )}
@@ -890,4 +962,18 @@ const styles = StyleSheet.create({
   },
   calloutText: { fontSize: 12, color: "#666", marginBottom: 3 },
   calloutDuty: { fontSize: 12, color: "#007AFF", fontWeight: "bold" },
+  mapTypeBtn: {
+    position: "absolute",
+    bottom: 40,
+    right: 20,
+    zIndex: 100,
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
 });
