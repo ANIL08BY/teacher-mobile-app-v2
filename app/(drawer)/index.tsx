@@ -26,7 +26,7 @@ import Animated, {
 import { Swipeable } from "react-native-gesture-handler";
 import { generateFairDutySchedule } from "../../utils/aiService";
 import * as Location from "expo-location";
-import MapView, { Marker, Callout, Circle } from "react-native-maps";
+import MapView, { Marker, Callout, Circle, UrlTile } from "react-native-maps";
 import Toast from "react-native-toast-message";
 import { registerForPushNotificationsAsync } from "../../utils/notificationService";
 import { doc, updateDoc } from "firebase/firestore";
@@ -130,6 +130,7 @@ export default function DashboardScreen() {
     lng: number;
   } | null>(null);
   const [activeDutyMarkers, setActiveDutyMarkers] = useState<any[]>([]);
+  const [interactiveMarkers, setInteractiveMarkers] = useState<any[]>([]);
 
   const stats = useMemo(() => {
     const total = teachers.length;
@@ -694,7 +695,7 @@ export default function DashboardScreen() {
           {myLocation && (
             <MapView
               style={{ flex: 1 }}
-              mapType={mapType as any}
+              mapType={mapType === "hybrid" ? "hybrid" : "none"}
               initialRegion={{
                 latitude: myLocation.lat,
                 longitude: myLocation.lng,
@@ -702,50 +703,88 @@ export default function DashboardScreen() {
                 longitudeDelta: 0.005,
               }}
               showsUserLocation={true}
+              // 🔥 YENİ: Ekrana uzun basıldığında çalışacak sihirli fonksiyon
+              onLongPress={(e) => {
+                const newCoordinate = e.nativeEvent.coordinate;
+                const newMarker = {
+                  id: Date.now().toString(), // Benzersiz bir ID veriyoruz
+                  lat: newCoordinate.latitude,
+                  lng: newCoordinate.longitude,
+                };
+                // Eski iğneleri koruyup, yenisini listeye ekliyoruz
+                setInteractiveMarkers([...interactiveMarkers, newMarker]);
+              }}
             >
+              {/* OSM / CartoDB Açık Kaynak Harita Katmanı */}
+              {mapType !== "hybrid" && (
+                <UrlTile
+                  urlTemplate="https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+                  maximumZ={19}
+                  flipY={false}
+                />
+              )}
+
+              {/* SABİT: Filistin Farkındalık Etkinliği */}
+              <Marker
+                coordinate={{
+                  latitude: myLocation.lat + 0.0015,
+                  longitude: myLocation.lng - 0.001,
+                }}
+                pinColor="green"
+                title="📅 Filistin Farkındalık Etkinliği"
+                description="Kültürel Sergi & Film Gösterimi (Saat: 14:00)"
+              />
+
+              {/* NÖBETÇİ ÖĞRETMENLER (Kırmızı) */}
               {activeDutyMarkers.map((marker) => (
                 <React.Fragment key={marker.id}>
-                  {/* 🔥 YENİ: Nöbet Alanı Çemberi (Geofencing) */}
                   <Circle
                     center={{ latitude: marker.lat, longitude: marker.lng }}
-                    radius={35} // 35 metrelik nöbet alanı
-                    fillColor="rgba(255, 59, 48, 0.2)" // Şeffaf kırmızı
-                    strokeColor="rgba(255, 59, 48, 0.8)" // Kırmızı kenarlık
+                    radius={35}
+                    fillColor="rgba(255, 59, 48, 0.2)"
+                    strokeColor="rgba(255, 59, 48, 0.8)"
                     strokeWidth={2}
                   />
-
                   <Marker
                     coordinate={{ latitude: marker.lat, longitude: marker.lng }}
-                  >
-                    <View style={styles.customMarker}>
-                      <Ionicons
-                        name="person-circle"
-                        size={34}
-                        color="#FF3B30"
-                      />
-                    </View>
-                    <Callout tooltip={true}>
-                      <View style={styles.calloutView}>
-                        <Text style={styles.calloutTitle}>{marker.name}</Text>
-                        <Text style={styles.calloutText}>{marker.branch}</Text>
-                        <Text style={styles.calloutDuty}>
-                          📍 {marker.dutyArea}
-                        </Text>
-                        {/* 🔥 YENİ: İdareciye Olan Uzaklık */}
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            color: "#EAB308",
-                            fontWeight: "bold",
-                            marginTop: 4,
-                          }}
-                        >
-                          📡 Size Uzaklık: {marker.distance} Metre
-                        </Text>
-                      </View>
-                    </Callout>
-                  </Marker>
+                    pinColor="red"
+                    title={`${marker.name} (${marker.branch})`}
+                    description={`📍 ${marker.dutyArea} | 📡 Uzaklık: ${marker.distance}m`}
+                  />
                 </React.Fragment>
+              ))}
+
+              {/* 🔥 YENİ: İNTERAKTİF EKLENEN İŞARETÇİLER (Silinebilir) */}
+              {interactiveMarkers.map((marker, index) => (
+                <Marker
+                  key={marker.id}
+                  coordinate={{ latitude: marker.lat, longitude: marker.lng }}
+                  pinColor="yellow"
+                  title={`📍 Özel İşaretleme ${index + 1}`}
+                  description="Silmek için bu baloncuğa dokunun 🗑️"
+                  // 🔥 YENİ: Baloncuğa tıklanınca silme onayı iste
+                  onCalloutPress={() => {
+                    Alert.alert(
+                      "İşareti Kaldır",
+                      "Bu özel işaretlemeyi haritadan silmek istiyor musunuz?",
+                      [
+                        { text: "İptal", style: "cancel" },
+                        {
+                          text: "Evet, Sil",
+                          style: "destructive",
+                          onPress: () => {
+                            // Tıklanan iğneyi listeden filtreleyip çıkarıyoruz
+                            setInteractiveMarkers(
+                              interactiveMarkers.filter(
+                                (m) => m.id !== marker.id,
+                              ),
+                            );
+                          },
+                        },
+                      ],
+                    );
+                  }}
+                />
               ))}
             </MapView>
           )}
@@ -791,7 +830,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
-  roleBadgeText: { color: "#1D4ED8", fontSize: 12, fontWeight: "bold" },
+  roleBadgeText: { color: "#0e48e8", fontSize: 12, fontWeight: "bold" },
 
   holidayWidget: {
     backgroundColor: "#f2ffee",

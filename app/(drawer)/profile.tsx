@@ -158,7 +158,7 @@ export default function ProfileScreen() {
             {isUploadingImage ? (
               <ActivityIndicator
                 size="large"
-                color="#4F46E5"
+                color="#1722e8"
                 style={{ position: "absolute", top: 35, left: 35 }}
               />
             ) : (
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#112ae8",
     width: 34,
     height: 34,
     borderRadius: 17,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 15,
   },
-  roleText: { color: "#1D4ED8", fontSize: 13, fontWeight: "bold" },
+  roleText: { color: "#114ced", fontSize: 13, fontWeight: "bold" },
   infoText: {
     textAlign: "center",
     color: "#6B7280",
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 15,
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: "#fd5151",
   },
   deleteBtnText: { color: "#EF4444", fontSize: 16, fontWeight: "bold" },
 });

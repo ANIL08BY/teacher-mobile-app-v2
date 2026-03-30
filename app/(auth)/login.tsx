@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   // SPLASH EKRANI STİLLERİ
   splashContainer: {
     flex: 1,
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#2e25e1",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   inputIcon: { marginRight: 10 },
   input: { flex: 1, fontSize: 16, color: "#1F2937" },
   button: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#2a20e4",
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
@@ -292,6 +292,6 @@ const styles = StyleSheet.create({
     marginTop: 25,
     paddingHorizontal: 5,
   },
-  linkTextBlue: { color: "#4F46E5", fontSize: 13, fontWeight: "bold" },
+  linkTextBlue: { color: "#2e24e4", fontSize: 13, fontWeight: "bold" },
   linkTextRed: { color: "#EF4444", fontSize: 13, fontWeight: "bold" },
 });
