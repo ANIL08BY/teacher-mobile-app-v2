@@ -5,7 +5,7 @@
     "slug": "okul-plus",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/okul-logo.png",
     "scheme": "teachermobileapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,9 +15,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png",
+        "foregroundImage": "./assets/images/okul-logo.png",
+        "backgroundImage": "./assets/images/okul-logo.png",
+        "monochromeImage": "./assets/images/okul-logo.png",
         "package": "com.anilbilgehan.okulplus",
         "versionCode": 1
       },
@@ -33,14 +33,14 @@
   },
   "web": {
     "output": "static",
-    "favicon": "./assets/images/favicon.png"
+    "favicon": "./assets/images/okul-logo.png"
   },
   "plugins": [
     "expo-router",
     [
       "expo-splash-screen",
       {
-        "image": "./assets/images/splash-icon.png",
+        "image": "./assets/images/okul-logo.png",
         "imageWidth": 200,
         "resizeMode": "contain",
         "backgroundColor": "#ffffff",
