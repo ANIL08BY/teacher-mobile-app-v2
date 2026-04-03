@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "263535538021",
+    "project_id": "teacher-mobile-app-e1232",
+    "storage_bucket": "teacher-mobile-app-e1232.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:263535538021:android:38970b52a8accda7ca3b8c",
+        "android_client_info": {
+          "package_name": "com.anil84.okulplus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNHMvJhphajhmlHTtDxUUkvCzxe-RBTD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
