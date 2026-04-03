@@ -22,7 +22,8 @@
         "versionCode": 1
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anil84.okulplus"
     },
     "extra": {
       "eas": {
