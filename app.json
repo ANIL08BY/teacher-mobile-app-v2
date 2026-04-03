@@ -13,12 +13,18 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/okul-logo.png",
         "backgroundImage": "./assets/images/okul-logo.png",
         "monochromeImage": "./assets/images/okul-logo.png",
-        "package": "com.anilbilgehan.okulplus",
+        "package": "com.anil84.okulplus",
         "versionCode": 1
       },
       "edgeToEdgeEnabled": true,
