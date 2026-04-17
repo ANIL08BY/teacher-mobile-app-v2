@@ -329,16 +329,28 @@ export default function DetailScreen() {
 
   const handleWhatsApp = async () => {
     if (!teacher.phone) return Alert.alert("Hata", "Kayıtlı telefon yok.");
-    const cleanPhone = teacher.phone.replace(/[^0-9]/g, "");
-    const formattedPhone =
-      cleanPhone.length === 10 ? `90${cleanPhone}` : cleanPhone;
-    const url = `whatsapp://send?phone=${formattedPhone}&text=Sayın ${teacher.name} Hocam, `;
 
+    // 1. Numaradaki boşluk vb. her şeyi temizle, sadece rakam kalsın
+    let cleanPhone = teacher.phone.replace(/[^0-9]/g, "");
+
+    // 2. WhatsApp'ın istediği Uluslararası Formata (905xx...) çevir
+    if (cleanPhone.startsWith("0") && cleanPhone.length === 11) {
+      // Örn: 05551234567 ise -> baştaki 0'ı kes, 90 ekle -> 905551234567
+      cleanPhone = "90" + cleanPhone.substring(1);
+    } else if (cleanPhone.length === 10) {
+      // Örn: 5551234567 ise -> direkt 90 ekle -> 905551234567
+      cleanPhone = "90" + cleanPhone;
+    }
+
+    // 3. Mesaj taslağı ve URL oluştur
+    const url = `whatsapp://send?phone=${cleanPhone}&text=Sayın ${teacher.name} Hocam, `;
+
+    // 4. Gönder
     const canOpen = await Linking.canOpenURL(url);
     if (canOpen) {
       Linking.openURL(url);
     } else {
-      Alert.alert("Hata", "Cihazınızda WhatsApp yüklü değil.");
+      Alert.alert("Hata", "Cihazınızda WhatsApp yüklü değil veya hata oluştu.");
     }
   };
 
