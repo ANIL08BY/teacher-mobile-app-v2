@@ -27,7 +27,7 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import QRCode from "react-native-qrcode-svg";
 import * as Brightness from "expo-brightness";
 import * as ImagePicker from "expo-image-picker";
-import * as Contacts from "expo-contacts"; // 🔥 YENİ EKLENDİ
+import * as Contacts from "expo-contacts";
 import Toast from "react-native-toast-message";
 
 Notifications.setNotificationHandler({
@@ -257,7 +257,6 @@ export default function DetailScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      // 🔥 YENİ: Ayarlara Yönlendirme (Linking)
       return Alert.alert(
         "İzin Reddedildi",
         "Profil fotoğrafını güncellemek için galeri erişim izni gereklidir.",
@@ -328,7 +327,6 @@ export default function DetailScreen() {
     else Alert.alert("Hata", "SMS özelliği bulunmuyor.");
   };
 
-  // 🔥 YENİ: WhatsApp Entegrasyonu
   const handleWhatsApp = async () => {
     if (!teacher.phone) return Alert.alert("Hata", "Kayıtlı telefon yok.");
     const cleanPhone = teacher.phone.replace(/[^0-9]/g, "");
@@ -344,7 +342,6 @@ export default function DetailScreen() {
     }
   };
 
-  // 🔥 YENİ: Fiziksel Rehbere Kaydetme (Contacts API)
   const handleSaveContact = async () => {
     if (!teacher.phone) return Alert.alert("Hata", "Kayıtlı telefon yok.");
     try {
@@ -360,9 +357,10 @@ export default function DetailScreen() {
         );
       }
 
+      // 🔥 TypeScript Hatası Çözüldü
       const contact = {
-        contactType: Contacts.ContactTypes.Person, // 🔥 EKLENDİ: Kişi olduğunu belirtiyoruz
-        name: `${teacher.name} ${teacher.surname}`, // 🔥 EKLENDİ: Tam adı tek satırda istiyor
+        contactType: Contacts.ContactTypes.Person,
+        name: `${teacher.name} ${teacher.surname}`,
         [Contacts.Fields.FirstName]: teacher.name,
         [Contacts.Fields.LastName]: teacher.surname,
         [Contacts.Fields.PhoneNumbers]: [
@@ -376,7 +374,7 @@ export default function DetailScreen() {
           teacher.role && teacher.role !== "Öğretmen"
             ? teacher.role
             : `${teacher.branch} Öğretmeni`,
-      } as Contacts.Contact; // 🔥 EKLENDİ: TypeScript'i tamamen susturan sihirli kılıf
+      } as Contacts.Contact;
 
       await Contacts.addContactAsync(contact);
       Toast.show({
@@ -684,49 +682,59 @@ export default function DetailScreen() {
           </Text>
         </View>
 
-        <View style={[styles.infoRow, { alignItems: "center" }]}>
-          <Text style={styles.label}>📞 Telefon:</Text>
+        {/* 🔥 GÜNCELLENDİ: Taşan Telefon ve Butonlar İçin Altlı-Üstlü Ferah Yerleşim */}
+        <View
+          style={[
+            styles.infoRow,
+            { flexDirection: "column", alignItems: "flex-start", gap: 10 },
+          ]}
+        >
           <View
             style={{
               flexDirection: "row",
+              justifyContent: "space-between",
+              width: "100%",
               alignItems: "center",
-              flex: 1,
-              justifyContent: "flex-end",
-              gap: 15,
             }}
           >
-            <Text>{teacher.phone || "-"}</Text>
-            {teacher.phone ? (
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                {/* 🔥 GÜNCELLENDİ: 4 Adet Native İletişim Butonu */}
-                <Pressable style={styles.actionBtn} onPress={handleCall}>
-                  <Ionicons name="call" size={16} color="white" />
-                </Pressable>
-                <Pressable
-                  style={[styles.actionBtn, { backgroundColor: "#FF9500" }]}
-                  onPress={handleSMS}
-                >
-                  <Ionicons
-                    name="chatbubble-ellipses"
-                    size={16}
-                    color="white"
-                  />
-                </Pressable>
-                <Pressable
-                  style={[styles.actionBtn, { backgroundColor: "#25D366" }]}
-                  onPress={handleWhatsApp}
-                >
-                  <Ionicons name="logo-whatsapp" size={16} color="white" />
-                </Pressable>
-                <Pressable
-                  style={[styles.actionBtn, { backgroundColor: "#007AFF" }]}
-                  onPress={handleSaveContact}
-                >
-                  <Ionicons name="person-add" size={16} color="white" />
-                </Pressable>
-              </View>
-            ) : null}
+            <Text style={styles.label}>📞 Telefon:</Text>
+            <Text style={{ fontWeight: "bold", color: "#333", fontSize: 16 }}>
+              {teacher.phone || "-"}
+            </Text>
           </View>
+
+          {teacher.phone ? (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                width: "100%",
+                gap: 12,
+              }}
+            >
+              <Pressable style={styles.actionBtn} onPress={handleCall}>
+                <Ionicons name="call" size={16} color="white" />
+              </Pressable>
+              <Pressable
+                style={[styles.actionBtn, { backgroundColor: "#FF9500" }]}
+                onPress={handleSMS}
+              >
+                <Ionicons name="chatbubble-ellipses" size={16} color="white" />
+              </Pressable>
+              <Pressable
+                style={[styles.actionBtn, { backgroundColor: "#25D366" }]}
+                onPress={handleWhatsApp}
+              >
+                <Ionicons name="logo-whatsapp" size={16} color="white" />
+              </Pressable>
+              <Pressable
+                style={[styles.actionBtn, { backgroundColor: "#007AFF" }]}
+                onPress={handleSaveContact}
+              >
+                <Ionicons name="person-add" size={16} color="white" />
+              </Pressable>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.infoRow}>
