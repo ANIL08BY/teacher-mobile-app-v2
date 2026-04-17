@@ -20,6 +20,8 @@ import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
+import * as Contacts from "expo-contacts"; // 🔥 YENİ EKLENDİ
+import * as Linking from "expo-linking"; // 🔥 YENİ EKLENDİ
 import Toast from "react-native-toast-message";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../../utils/firebaseConfig";
@@ -145,9 +147,14 @@ export default function AddScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
+      // 🔥 GÜNCELLENDİ: Ayarlara yönlendirme
       Alert.alert(
         "İzin Reddedildi",
         "Profil fotoğrafı eklemek için galeri erişim izni gereklidir.",
+        [
+          { text: "İptal", style: "cancel" },
+          { text: "Ayarlara Git", onPress: () => Linking.openSettings() },
+        ],
       );
       return;
     }
@@ -158,6 +165,54 @@ export default function AddScreen() {
       quality: 0.8,
     });
     if (!result.canceled) setTAvatar(result.assets[0].uri);
+  };
+
+  // 🔥 YENİ: Rehberden Kişi Seçme Motoru
+  const handlePickContact = async () => {
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== "granted") {
+        return Alert.alert(
+          "İzin Gerekli",
+          "Rehberden kişi seçmek için kişiler izni vermelisiniz.",
+          [
+            { text: "İptal", style: "cancel" },
+            { text: "Ayarlara Git", onPress: () => Linking.openSettings() },
+          ],
+        );
+      }
+
+      const contact = await Contacts.presentContactPickerAsync();
+      if (contact) {
+        if (contact.firstName)
+          setTName(contact.firstName.replace(/[0-9]/g, ""));
+        if (contact.lastName)
+          setTSurname(contact.lastName.replace(/[0-9]/g, ""));
+
+        if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+          // Numaradaki boşluk, tire ve parantezleri temizle
+          const rawPhone = contact.phoneNumbers[0].number || "";
+          let cleanPhone = rawPhone.replace(/[^0-9]/g, "");
+
+          // +90 veya 90 ile başlıyorsa temizle ve 0 ekle
+          if (cleanPhone.startsWith("90") && cleanPhone.length === 12) {
+            cleanPhone = "0" + cleanPhone.substring(2);
+          } else if (cleanPhone.length === 10 && !cleanPhone.startsWith("0")) {
+            cleanPhone = "0" + cleanPhone;
+          }
+
+          setTPhone(cleanPhone.substring(0, 11));
+        }
+
+        Toast.show({
+          type: "success",
+          text1: "Kişi Seçildi 📇",
+          text2: "Rehberdeki bilgiler forma aktarıldı.",
+        });
+      }
+    } catch (error) {
+      Alert.alert("Hata", "Rehberden kişi seçilirken bir sorun oluştu.");
+    }
   };
 
   const handleAddNewClub = () => {
@@ -188,7 +243,7 @@ export default function AddScreen() {
     body: string,
   ) => {
     const message = {
-      to: expoPushToken, // Artık parametre olarak geliyor
+      to: expoPushToken,
       sound: "default",
       title: title,
       body: body,
@@ -202,13 +257,11 @@ export default function AddScreen() {
   };
 
   const handleSave = async () => {
-    // --- 1. TEMİZLEME ---
     const cleanName = tName.trim();
     const cleanSurname = tSurname.trim();
     const cleanPhone = tPhone.replace(/\s/g, "");
     const cleanTc = tTcNo.trim();
 
-    // Regex: Sadece harfler ve boşluk
     const alphaRegex = /^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/;
     const formatPascalCase = (str: string) =>
       str
@@ -217,7 +270,6 @@ export default function AddScreen() {
         .map((s) => s.charAt(0).toLocaleUpperCase("tr-TR") + s.slice(1))
         .join(" ");
 
-    // --- 2. DOĞRULAMA ---
     if (
       !cleanName ||
       !cleanSurname ||
@@ -250,7 +302,6 @@ export default function AddScreen() {
       });
     }
 
-    // --- 3. MÜKERRERLİK ---
     if (teachers.some((t) => t.tcNo === cleanTc)) {
       return Alert.alert(
         "Mükerrer Kayıt ⚠️",
@@ -258,7 +309,6 @@ export default function AddScreen() {
       );
     }
 
-    // --- 4. NÖBET ---
     let finalDuty = "";
     if (tDutyDay && tDutyDay !== "Yok") {
       const actualLocation =
@@ -270,7 +320,6 @@ export default function AddScreen() {
       finalDuty = `${tDutyDay} - ${actualLocation}`;
     }
 
-    // --- 5. KAYIT ---
     const finalName = formatPascalCase(cleanName);
     const finalSurname = cleanSurname.toLocaleUpperCase("tr-TR");
 
@@ -306,7 +355,6 @@ export default function AddScreen() {
     });
 
     try {
-      // 1. Firestore'dan Müdür ve Yardımcılarının tokenlarını çek
       const usersRef = collection(db, "users");
       const q = query(
         usersRef,
@@ -314,12 +362,11 @@ export default function AddScreen() {
       );
       const querySnapshot = await getDocs(q);
 
-      // 2. Her bir yöneticiye bildirim gönder
       querySnapshot.forEach(async (userDoc) => {
         const adminToken = userDoc.data().pushToken;
         if (adminToken) {
           await sendPushNotification(
-            adminToken, // Dinamik olarak Firestore'dan geldi
+            adminToken,
             "📢 Yeni Personel Kaydı",
             `${finalName} ${finalSurname} sisteme eklendi.`,
           );
@@ -359,8 +406,20 @@ export default function AddScreen() {
         <Text style={styles.avatarHint}>Fotoğraf Seçmek İçin Dokunun</Text>
       </View>
 
-      <Text style={styles.sectionHeader}>Temel Bilgiler</Text>
-      {/* 🛡️ AD: Sayı giremez, her kelime büyük başlar */}
+      {/* 🔥 YENİ: Rehberden Çek Butonu */}
+      <View style={styles.headerWithButton}>
+        <Text style={[styles.sectionHeader, { marginBottom: 0 }]}>
+          Temel Bilgiler
+        </Text>
+        <TouchableOpacity
+          style={styles.pickContactBtn}
+          onPress={handlePickContact}
+        >
+          <Ionicons name="people-circle" size={20} color="#4F46E5" />
+          <Text style={styles.pickContactBtnText}>Rehberden Seç</Text>
+        </TouchableOpacity>
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="Ad *"
@@ -368,14 +427,12 @@ export default function AddScreen() {
         onChangeText={(text) => setTName(text.replace(/[0-9]/g, ""))}
         autoCapitalize="words"
       />
-      {/* 🛡️ SOYAD: Sayı giremez, otomatik büyük harfe zorlar */}
       <TextInput
         style={styles.input}
         placeholder="Soyad *"
         value={tSurname}
         onChangeText={(text) => setTSurname(text.replace(/[0-9]/g, ""))}
       />
-      {/* 🛡️ TC NO: Sadece 11 rakam */}
       <TextInput
         style={styles.input}
         placeholder="TC Kimlik No *"
@@ -463,7 +520,6 @@ export default function AddScreen() {
             value={tSpouseInstitution}
             onChangeText={setTSpouseInstitution}
           />
-          {/* 🛡️ ÇOCUK SAYISI: Sadece 2 hane rakam */}
           <TextInput
             style={[styles.input, { marginBottom: 0 }]}
             placeholder="Çocuk Sayısı"
@@ -506,7 +562,6 @@ export default function AddScreen() {
       >
         <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={styles.label}>Yaş</Text>
-          {/* 🛡️ YAŞ: Sadece 2 hane rakam */}
           <TextInput
             style={styles.input}
             keyboardType="numeric"
@@ -518,7 +573,6 @@ export default function AddScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>Kıdem Yılı</Text>
-          {/* 🛡️ KIDEM: Sadece 2 hane rakam */}
           <TextInput
             style={styles.input}
             keyboardType="numeric"
@@ -560,7 +614,6 @@ export default function AddScreen() {
       </View>
 
       <Text style={styles.label}>Kullanılan İzin (Yıllık 30 Gün)</Text>
-      {/* 🛡️ İZİN: Sadece 3 hane rakam */}
       <TextInput
         style={styles.input}
         keyboardType="numeric"
@@ -651,7 +704,6 @@ export default function AddScreen() {
       <Text style={[styles.sectionHeader, { marginTop: 10 }]}>
         İletişim & Nöbet
       </Text>
-      {/* 🛡️ TELEFON: Sadece 11 rakam */}
       <TextInput
         style={styles.input}
         placeholder="Telefon (Örn: 05xx)"
@@ -714,6 +766,27 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+  },
+  // 🔥 YENİ: Başlık ve buton için yan yana düzen
+  headerWithButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  pickContactBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E0E7FF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  pickContactBtnText: {
+    color: "#4F46E5",
+    fontWeight: "bold",
+    marginLeft: 5,
+    fontSize: 13,
   },
   input: {
     backgroundColor: "white",

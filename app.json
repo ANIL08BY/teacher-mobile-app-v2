@@ -19,7 +19,9 @@
         "ACCESS_FINE_LOCATION",
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_CONTACTS",
+        "WRITE_CONTACTS"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -55,6 +57,12 @@
         "dark": {
           "backgroundColor": "#000000"
         }
+      }
+    ],
+    [
+      "expo-contacts",
+      {
+        "contactsPermission": "Uygulamaya personel eklemek ve kişileri rehbere kaydetmek için rehber izni gereklidir."
       }
     ]
   ],

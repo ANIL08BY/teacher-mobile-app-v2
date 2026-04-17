@@ -27,6 +27,7 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import QRCode from "react-native-qrcode-svg";
 import * as Brightness from "expo-brightness";
 import * as ImagePicker from "expo-image-picker";
+import * as Contacts from "expo-contacts"; // 🔥 YENİ EKLENDİ
 import Toast from "react-native-toast-message";
 
 Notifications.setNotificationHandler({
@@ -122,7 +123,6 @@ export default function DetailScreen() {
     teacher?.maritalStatus || "",
   );
 
-  // 🔥 YENİ: DİNAMİK İK STATELERİ
   const [tSpouseInstitution, setTSpouseInstitution] = useState(
     teacher?.spouseInstitution || "",
   );
@@ -256,11 +256,17 @@ export default function DetailScreen() {
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted")
+    if (status !== "granted") {
+      // 🔥 YENİ: Ayarlara Yönlendirme (Linking)
       return Alert.alert(
         "İzin Reddedildi",
         "Profil fotoğrafını güncellemek için galeri erişim izni gereklidir.",
+        [
+          { text: "İptal", style: "cancel" },
+          { text: "Ayarlara Git", onPress: () => Linking.openSettings() },
+        ],
       );
+    }
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -322,8 +328,68 @@ export default function DetailScreen() {
     else Alert.alert("Hata", "SMS özelliği bulunmuyor.");
   };
 
+  // 🔥 YENİ: WhatsApp Entegrasyonu
+  const handleWhatsApp = async () => {
+    if (!teacher.phone) return Alert.alert("Hata", "Kayıtlı telefon yok.");
+    const cleanPhone = teacher.phone.replace(/[^0-9]/g, "");
+    const formattedPhone =
+      cleanPhone.length === 10 ? `90${cleanPhone}` : cleanPhone;
+    const url = `whatsapp://send?phone=${formattedPhone}&text=Sayın ${teacher.name} Hocam, `;
+
+    const canOpen = await Linking.canOpenURL(url);
+    if (canOpen) {
+      Linking.openURL(url);
+    } else {
+      Alert.alert("Hata", "Cihazınızda WhatsApp yüklü değil.");
+    }
+  };
+
+  // 🔥 YENİ: Fiziksel Rehbere Kaydetme (Contacts API)
+  const handleSaveContact = async () => {
+    if (!teacher.phone) return Alert.alert("Hata", "Kayıtlı telefon yok.");
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== "granted") {
+        return Alert.alert(
+          "İzin Gerekli",
+          "Rehbere kişi eklemek için izin vermelisiniz.",
+          [
+            { text: "İptal", style: "cancel" },
+            { text: "Ayarlara Git", onPress: () => Linking.openSettings() },
+          ],
+        );
+      }
+
+      const contact = {
+        contactType: Contacts.ContactTypes.Person, // 🔥 EKLENDİ: Kişi olduğunu belirtiyoruz
+        name: `${teacher.name} ${teacher.surname}`, // 🔥 EKLENDİ: Tam adı tek satırda istiyor
+        [Contacts.Fields.FirstName]: teacher.name,
+        [Contacts.Fields.LastName]: teacher.surname,
+        [Contacts.Fields.PhoneNumbers]: [
+          {
+            label: "mobile",
+            number: teacher.phone,
+          },
+        ],
+        [Contacts.Fields.Company]: "Okul+",
+        [Contacts.Fields.JobTitle]:
+          teacher.role && teacher.role !== "Öğretmen"
+            ? teacher.role
+            : `${teacher.branch} Öğretmeni`,
+      } as Contacts.Contact; // 🔥 EKLENDİ: TypeScript'i tamamen susturan sihirli kılıf
+
+      await Contacts.addContactAsync(contact);
+      Toast.show({
+        type: "success",
+        text1: "Rehbere Kaydedildi 📇",
+        text2: `${teacher.name} telefonunuzun rehberine eklendi.`,
+      });
+    } catch (error) {
+      Alert.alert("Hata", "Kişi kaydedilirken bir hata oluştu.");
+    }
+  };
+
   const handleUpdateTeacher = async () => {
-    // --- 1. ÖN TEMİZLİK ---
     const cleanName = tName.trim();
     const cleanSurname = tSurname.trim();
     const cleanPhone = tPhone.replace(/\s/g, "");
@@ -337,7 +403,6 @@ export default function DetailScreen() {
         .map((s) => s.charAt(0).toLocaleUpperCase("tr-TR") + s.slice(1))
         .join(" ");
 
-    // --- 2. DOĞRULAMA ---
     if (
       !cleanName ||
       !cleanSurname ||
@@ -368,7 +433,6 @@ export default function DetailScreen() {
       });
     }
 
-    // --- 3. NÖBET ÇAKIŞMA ---
     let finalDuty = teacher.duty;
     if (isTopManagement) {
       if (tDutyDay && tDutyDay !== "Yok") {
@@ -397,7 +461,6 @@ export default function DetailScreen() {
       }
     }
 
-    // --- 4. GÜNCELLEME ---
     const finalName = formatPascalCase(cleanName);
     const finalSurname = cleanSurname.toLocaleUpperCase("tr-TR");
 
@@ -603,7 +666,6 @@ export default function DetailScreen() {
             <Text style={styles.subBranch}>Branş: {teacher.branch}</Text>
           )}
 
-          {/* 🔥 YENİ: KADIN PERSONEL İSE DOĞUM İZNİ ROZETİ */}
           {teacher.gender === "Kadın" && teacher.isOnMaternityLeave && (
             <View style={styles.maternityBadge}>
               <Text style={styles.maternityBadgeText}>🤰 Doğum İzninde</Text>
@@ -636,6 +698,7 @@ export default function DetailScreen() {
             <Text>{teacher.phone || "-"}</Text>
             {teacher.phone ? (
               <View style={{ flexDirection: "row", gap: 8 }}>
+                {/* 🔥 GÜNCELLENDİ: 4 Adet Native İletişim Butonu */}
                 <Pressable style={styles.actionBtn} onPress={handleCall}>
                   <Ionicons name="call" size={16} color="white" />
                 </Pressable>
@@ -648,6 +711,18 @@ export default function DetailScreen() {
                     size={16}
                     color="white"
                   />
+                </Pressable>
+                <Pressable
+                  style={[styles.actionBtn, { backgroundColor: "#25D366" }]}
+                  onPress={handleWhatsApp}
+                >
+                  <Ionicons name="logo-whatsapp" size={16} color="white" />
+                </Pressable>
+                <Pressable
+                  style={[styles.actionBtn, { backgroundColor: "#007AFF" }]}
+                  onPress={handleSaveContact}
+                >
+                  <Ionicons name="person-add" size={16} color="white" />
                 </Pressable>
               </View>
             ) : null}
@@ -716,7 +791,6 @@ export default function DetailScreen() {
           </Text>
         </View>
 
-        {/* 🔥 YENİ: KART ÜZERİNDE EVLİ İSE EŞ VE ÇOCUK BİLGİLERİ */}
         {teacher.maritalStatus === "Evli" && (
           <>
             <View style={styles.hrRow}>
@@ -1147,7 +1221,6 @@ export default function DetailScreen() {
                 </Text>
               </View>
 
-              {/* Ad: Sayı giremez */}
               <TextInput
                 style={styles.modalInput}
                 placeholder="Ad"
@@ -1156,7 +1229,6 @@ export default function DetailScreen() {
                 autoCapitalize="words"
               />
 
-              {/* Soyad: Sayı giremez */}
               <TextInput
                 style={styles.modalInput}
                 placeholder="Soyad"
@@ -1164,7 +1236,6 @@ export default function DetailScreen() {
                 onChangeText={(text) => setTSurname(text.replace(/[0-9]/g, ""))}
               />
 
-              {/* TC: Sadece 11 rakam */}
               <TextInput
                 style={styles.modalInput}
                 placeholder="TC Kimlik No"
@@ -1202,7 +1273,6 @@ export default function DetailScreen() {
                 </View>
               </View>
 
-              {/* 🔥 KOŞULLU GÖSTERİM: KADIN SEÇİLDİYSE DOĞUM İZNİ SORUSU ÇIKAR */}
               {tGender === "Kadın" && (
                 <View style={styles.dynamicBox}>
                   <Text style={styles.dynamicLabel}>🤰 Doğum İzni Durumu</Text>
@@ -1248,7 +1318,6 @@ export default function DetailScreen() {
                 </View>
               )}
 
-              {/* 🔥 KOŞULLU GÖSTERİM: EVLİ SEÇİLDİYSE EŞ VE ÇOCUK DURUMU ÇIKAR */}
               {tMaritalStatus === "Evli" && (
                 <View style={styles.dynamicBox}>
                   <Text style={styles.dynamicLabel}>💍 Eş ve Çocuk Durumu</Text>
@@ -1258,7 +1327,6 @@ export default function DetailScreen() {
                     value={tSpouseInstitution}
                     onChangeText={setTSpouseInstitution}
                   />
-                  {/* Çocuk Sayısı: Sadece rakam */}
                   <TextInput
                     style={[styles.modalInput, { marginBottom: 0 }]}
                     placeholder="Çocuk Sayısı"
@@ -1296,7 +1364,6 @@ export default function DetailScreen() {
               <Text style={[styles.sectionDivider, { marginTop: 15 }]}>
                 İletişim & Konum
               </Text>
-              {/* Telefon: Sadece rakam */}
               <TextInput
                 style={styles.modalInput}
                 placeholder="Telefon"
@@ -1330,7 +1397,6 @@ export default function DetailScreen() {
                 />
               </View>
 
-              {/* Yaş & Kıdem: Sadece rakam */}
               <View style={{ flexDirection: "row", gap: 10 }}>
                 <View style={{ flex: 1 }}>
                   <TextInput
@@ -1356,7 +1422,6 @@ export default function DetailScreen() {
                 </View>
               </View>
 
-              {/* Kullanılan İzin (Gün) */}
               <Text style={styles.inputLabel}>Kullanılan İzin (Gün):</Text>
               <TextInput
                 style={styles.modalInput}
@@ -1364,11 +1429,10 @@ export default function DetailScreen() {
                 placeholder="Kullanılan İzin"
                 value={tUsedLeaveDays}
                 onChangeText={(text) => {
-                  // Sadece rakamları kabul et, geri kalan her şeyi sil
                   const numericValue = text.replace(/[^0-9]/g, "");
                   setTUsedLeaveDays(numericValue);
                 }}
-                maxLength={3} // Bir yılda 365 günden fazla izin olamaz
+                maxLength={3}
               />
 
               <View
@@ -1557,7 +1621,6 @@ export default function DetailScreen() {
                   <Text style={[styles.sectionDivider, { marginTop: 15 }]}>
                     Denetim / Müfettiş Raporu
                   </Text>
-                  {/* Performans Puanı */}
                   <Text style={styles.inputLabel}>
                     Performans Puanı (100 Üzerinden):
                   </Text>
@@ -1567,13 +1630,9 @@ export default function DetailScreen() {
                     placeholder="Örn: 92"
                     value={tInspectorScore}
                     onChangeText={(text) => {
-                      // 1. Önce sadece rakamları al
                       const numericValue = text.replace(/[^0-9]/g, "");
-
-                      // 2. Eğer sayı 100'den büyükse 100'e sabitle
                       if (numericValue !== "" && parseInt(numericValue) > 100) {
                         setTInspectorScore("100");
-                        // İsteğe bağlı: Kullanıcıya puanın 100'ü geçemeyeceğini bildiren küçük bir toast
                         Toast.show({
                           type: "info",
                           text1: "Puan Sınırı",
@@ -1583,7 +1642,7 @@ export default function DetailScreen() {
                         setTInspectorScore(numericValue);
                       }
                     }}
-                    maxLength={3} // 100 sayısı zaten 3 hanelidir
+                    maxLength={3}
                   />
                   <Text style={styles.inputLabel}>
                     Müfettişin Değerlendirme Notu:
@@ -1750,8 +1809,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#007AFF",
   },
-
-  // 🔥 YENİ: KADIN PERSONEL DOĞUM İZNİ ROZETİ STİLİ
   maternityBadge: {
     backgroundColor: "#FCE7F3",
     paddingHorizontal: 12,
@@ -1766,7 +1823,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 13,
   },
-
   name: { fontSize: 22, fontWeight: "bold" },
   roleBadge: {
     fontSize: 18,
@@ -1834,7 +1890,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   smallBtnText: { color: "white", fontSize: 12, fontWeight: "bold" },
-
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
@@ -1878,8 +1933,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fafafa",
     marginBottom: 10,
   },
-
-  // 🔥 YENİ DİNAMİK ALAN STİLLERİ
   dynamicBox: {
     backgroundColor: "#EEF2FF",
     padding: 15,
@@ -1905,7 +1958,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
   },
   radioBtnActive: { backgroundColor: "#3B82F6", borderColor: "#3B82F6" },
-
   actionBtn: {
     backgroundColor: "#34C759",
     width: 34,
@@ -1955,7 +2007,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   mapInfoText: { fontSize: 14, color: "#666" },
-
   hrCard: {
     backgroundColor: "#F8FAFC",
     padding: 20,
@@ -1983,7 +2034,6 @@ const styles = StyleSheet.create({
     borderColor: "#BFDBFE",
   },
   titleBadgeText: { color: "#1D4ED8", fontSize: 13, fontWeight: "bold" },
-
   inspectorCard: {
     backgroundColor: "#FFFBEB",
     padding: 20,
@@ -2029,7 +2079,6 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     lineHeight: 20,
   },
-
   awardsCard: {
     backgroundColor: "#f3fff3",
     padding: 20,
@@ -2045,7 +2094,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#A7F3D0",
   },
-
   progressContainer: {
     marginTop: 8,
     flexDirection: "row",
@@ -2066,7 +2114,6 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     width: 90,
   },
-
   qrCard: {
     backgroundColor: "white",
     padding: 20,
