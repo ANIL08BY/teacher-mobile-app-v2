@@ -45,6 +45,7 @@ interface TeacherContextType {
   assignDepartmentHead: (branch: string, newHeadId: string) => Promise<void>;
   updateStepCount: (teacherId: string, steps: number) => Promise<void>;
   logEmergency: (teacherId: string, details: string) => Promise<void>;
+  updateMeetingStatus: (teacherId: string, status: boolean) => Promise<void>;
 }
 
 export const TeacherContext = createContext<TeacherContextType | undefined>(
@@ -54,6 +55,15 @@ export const TeacherContext = createContext<TeacherContextType | undefined>(
 export const TeacherProvider = ({ children }: { children: ReactNode }) => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const updateMeetingStatus = async (teacherId: string, status: boolean) => {
+    try {
+      await updateDoc(doc(db, "teachers", teacherId), {
+        isMeetingMode: status,
+      });
+    } catch (error) {
+      console.error("Toplantı durumu güncellenemedi", error);
+    }
+  };
 
   // FIREBASE REALTIME LISTENER (Canlı Dinleme)
   useEffect(() => {
@@ -295,6 +305,7 @@ export const TeacherProvider = ({ children }: { children: ReactNode }) => {
         assignDepartmentHead,
         updateStepCount,
         logEmergency,
+        updateMeetingStatus,
       }}
     >
       {children}

@@ -36,4 +36,5 @@ export interface Teacher {
   isOnMaternityLeave?: boolean; // Kadın Personel İçin Doğum İzni Durumu
   stepCount?: number; // Günlük Nöbet Adım Sayısı
   lastEmergency?: string; // Son Acil Durum Sinyali (Tarih/Saat)
+  isMeetingMode?: boolean; // Toplantı/Sessiz Modu Durumu
 }
