@@ -27,9 +27,14 @@ export default function DutyTrackingScreen() {
 
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>("");
   const [isDutyActive, setIsDutyActive] = useState(false);
+
+  // Sensör Stateleri
   const [stepCount, setStepCount] = useState(0);
   const [acceleration, setAcceleration] = useState(0);
   const [isMeetingMode, setIsMeetingMode] = useState(false);
+  const [heading, setHeading] = useState(0);
+  const [isEmergencyMode, setIsEmergencyMode] = useState(false);
+  const [systemLogs, setSystemLogs] = useState<string[]>([]);
 
   const SHAKE_THRESHOLD = 1.8;
   const isEmergencyTriggered = useRef(false);
@@ -37,16 +42,17 @@ export default function DutyTrackingScreen() {
   const teacherOptions = teachers.map((t) => t.name + " " + t.surname);
   const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
 
-  const [heading, setHeading] = useState(0); // Pusula derecesi
-  const [isFallen, setIsFallen] = useState(false); // Düşme durumu
+  const addLog = (message: string) => {
+    const time = new Date().toLocaleTimeString("tr-TR");
+    setSystemLogs((prev) => [`[${time}] ${message}`, ...prev].slice(0, 5)); // Son 5 logu tut
+  };
 
-  // 1. İVMEÖLÇER (SALLAMA) & JİROSKOP (TOPLANTI MODU) DİNLEYİCİSİ
+  // 1. İVMEÖLÇER & JİROSKOP & MANYETOMETRE & DEVICEMOTION
   useEffect(() => {
-    let accSub: any;
-    let gyroSub: any;
+    let accSub: any, gyroSub: any, magSub: any, motionSub: any;
 
     if (isDutyActive) {
-      // İvmeölçer
+      // İVMEÖLÇER (Sallama Algılama)
       Accelerometer.setUpdateInterval(100);
       accSub = Accelerometer.addListener((data) => {
         const totalAcc = Math.sqrt(
@@ -55,16 +61,40 @@ export default function DutyTrackingScreen() {
         setAcceleration(Number(totalAcc.toFixed(2)));
         if (totalAcc > SHAKE_THRESHOLD && !isEmergencyTriggered.current) {
           isEmergencyTriggered.current = true;
-          triggerEmergency();
+          triggerEmergency("Sarsıntı Algılandı");
         }
       });
 
-      // JİROSKOP: Dönme hareketini algılar
+      // JİROSKOP (Toplantı Modu)
       Gyroscope.setUpdateInterval(500);
       gyroSub = Gyroscope.addListener((data) => {
-        // Eğer telefon hızlıca x ekseninde döndürülürse (masaya ters kapatma hareketi)
-        if (Math.abs(data.x) > 3) {
-          toggleMeetingMode();
+        if (Math.abs(data.x) > 3) toggleMeetingMode();
+      });
+
+      // MANYETOMETRE (Pusula - Acil Toplanma Yönü)
+      Magnetometer.setUpdateInterval(100);
+      magSub = Magnetometer.addListener((data) => {
+        let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
+        if (angle < 0) angle += 360;
+        setHeading(Math.round(angle));
+      });
+
+      // DEVICEMOTION (Düşme Algılama)
+      DeviceMotion.setUpdateInterval(200);
+      motionSub = DeviceMotion.addListener((event) => {
+        const { acceleration, rotationRate } = event;
+        if (acceleration && rotationRate) {
+          const totalAcc = Math.sqrt(
+            acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2,
+          );
+          const totalRot =
+            Math.abs(rotationRate.alpha) + Math.abs(rotationRate.beta);
+
+          // Çok sert ivmelenme ve dönme varsa (Düşme Eşiği)
+          if (totalAcc > 20 && totalRot > 5 && !isEmergencyTriggered.current) {
+            isEmergencyTriggered.current = true;
+            triggerEmergency("Personel Düşmesi Algılandı!");
+          }
         }
       });
     }
@@ -72,10 +102,12 @@ export default function DutyTrackingScreen() {
     return () => {
       accSub?.remove();
       gyroSub?.remove();
+      magSub?.remove();
+      motionSub?.remove();
     };
   }, [isDutyActive]);
 
-  // 2. ADIMSAYAR
+  // 2. ADIMSAYAR (PEDOMETER)
   useEffect(() => {
     let stepSub: any;
     const subscribe = async () => {
@@ -95,79 +127,42 @@ export default function DutyTrackingScreen() {
       const newStatus = !prev;
       Vibration.vibrate(100);
       if (selectedTeacherId) updateMeetingStatus(selectedTeacherId, newStatus);
-
+      addLog(newStatus ? "Toplantı Modu Aktif" : "Normal Moda Dönüldü");
       Toast.show({
         type: newStatus ? "info" : "success",
-        text1: newStatus ? "🔇 Toplantı Modu Aktif" : "🔊 Normal Mod",
-        text2: newStatus
-          ? "Durumunuz 'Meşgul' olarak güncellendi."
-          : "Tekrar 'Müsait' olarak işaretlendiniz.",
+        text1: newStatus ? "🔇 Toplantı Modu" : "🔊 Normal Mod",
       });
       return newStatus;
     });
   };
 
-  const triggerEmergency = () => {
+  const triggerEmergency = (reason: string) => {
+    setIsEmergencyMode(true);
     Vibration.vibrate([500, 500, 500, 500]);
-    if (selectedTeacherId)
-      logEmergency(selectedTeacherId, new Date().toLocaleString("tr-TR"));
+    addLog(`🚨 SİNYAL GÖNDERİLDİ: ${reason}`);
+
+    if (selectedTeacherId) {
+      // Firebase'e logu yazıyoruz (Buradan gittiğini anlıyoruz)
+      logEmergency(
+        selectedTeacherId,
+        `${new Date().toLocaleString("tr-TR")} - ${reason}`,
+      );
+    }
+
     Alert.alert(
       "🚨 ACİL DURUM",
-      "Sarsıntı algılandı! İdareye bildirim gönderildi.",
+      `${reason}\nİdareye ve güvenlik birimlerine anlık konum ve sinyal gönderildi. Lütfen Acil Toplanma Alanına yönelin!`,
       [
         {
-          text: "Kapat",
-          onPress: () => (isEmergencyTriggered.current = false),
+          text: "Anlaşıldı",
+          onPress: () => {
+            isEmergencyTriggered.current = false;
+            setIsEmergencyMode(false);
+          },
         },
       ],
     );
   };
-
-  // 3. MAGNETOMETRE (PUSULA) DİNLEYİCİSİ
-  useEffect(() => {
-    let sub: any;
-    if (isDutyActive) {
-      Magnetometer.setUpdateInterval(500);
-      sub = Magnetometer.addListener((data) => {
-        // Manyetik veriden derece hesaplama
-        let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
-        if (angle < 0) angle += 360;
-        setHeading(Math.round(angle));
-      });
-    }
-    return () => sub?.remove();
-  }, [isDutyActive]);
-
-  // 4. DEVICEMOTION (DÜŞME ALGILAMA)
-  useEffect(() => {
-    let motionSub: any;
-    if (isDutyActive) {
-      DeviceMotion.setUpdateInterval(200);
-      motionSub = DeviceMotion.addListener((event) => {
-        const { acceleration, rotationRate } = event;
-
-        // Ani ivmelenme ve sert dönüşü kontrol et (Düşme Algoritması)
-        if (acceleration && rotationRate) {
-          const totalAcc = Math.sqrt(
-            acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2,
-          );
-          const totalRot =
-            Math.abs(rotationRate.alpha) + Math.abs(rotationRate.beta);
-
-          if (totalAcc > 25 && totalRot > 5) {
-            // Sert düşme eşiği
-            setIsFallen(true);
-            Vibration.vibrate([100, 500, 100, 500]);
-            Alert.alert(
-              "🚨 Düşme Algılandı!",
-              "İyi misiniz? 10 saniye içinde yanıt vermezseniz idareye yardım çağrısı gönderilecek.",
-            );
-          }
-        }
-      });
-    }
-    return () => motionSub?.remove();
-  }, [isDutyActive]);
 
   return (
     <ScrollView style={styles.container}>
@@ -190,56 +185,58 @@ export default function DutyTrackingScreen() {
         />
       </Animated.View>
 
-      {/* TOPLANTI MODU KARTI (JİROSKOP) */}
+      {/* PUSULA VE ACİL DURUM KARTI */}
       <Animated.View
-        entering={FadeInDown.delay(100)}
-        style={[
-          styles.card,
-          { backgroundColor: isMeetingMode ? "#f5f3e5" : "#FFF" },
-        ]}
+        entering={FadeInDown.delay(50)}
+        style={[styles.card, isEmergencyMode ? styles.emergencyBg : null]}
       >
         <View style={styles.headerRow}>
           <Ionicons
-            name={isMeetingMode ? "volume-mute" : "volume-high"}
+            name="compass"
             size={28}
-            color="#d6d314"
+            color={isEmergencyMode ? "#EF4444" : "#007AFF"}
           />
-          <Text style={[styles.cardTitle, { color: "#e0cf11" }]}>
-            Toplantı Modu (Jiroskop)
+          <Text
+            style={[styles.cardTitle, isEmergencyMode && { color: "#EF4444" }]}
+          >
+            Acil Toplanma Alanı Yönü
           </Text>
         </View>
         <Text style={styles.desc}>
-          Cihazı hızlıca ters çevirerek (veya masaya kapatarak) otomatik olarak
-          toplantı moduna geçebilirsiniz.
+          Magnetometre (Pusula) verisine göre yönünüz:
         </Text>
-        <TouchableOpacity
-          style={[styles.testBtn, { borderColor: "#dca50c" }]}
-          onPress={toggleMeetingMode}
-        >
-          <Text style={{ color: "#ded00b", fontWeight: "bold" }}>
-            Modu Manuel Değiştir
-          </Text>
-        </TouchableOpacity>
+
+        <View style={styles.compassContainer}>
+          {/* Cihazın dönüşüne göre tam tersi yönde dönen pusula oku */}
+          <View
+            style={[
+              styles.compassNeedle,
+              { transform: [{ rotate: `${360 - heading}deg` }] },
+            ]}
+          >
+            <Ionicons
+              name="navigate-circle"
+              size={80}
+              color={isEmergencyMode ? "#EF4444" : "#007AFF"}
+            />
+          </View>
+          <Text style={styles.headingText}>{heading}°</Text>
+        </View>
       </Animated.View>
 
-      {/* ADIMSAYAR KARTI */}
-      <View style={styles.card}>
-        <View style={styles.headerRow}>
-          <Ionicons name="footsteps" size={28} color="#10B981" />
-          <Text style={styles.cardTitle}>Nöbet Performansı</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{stepCount}</Text>
-          <Text style={styles.statLabel}>Adım</Text>
-        </View>
-      </View>
-
-      {/* SALLAMA KARTI */}
-      <View style={[styles.card, { borderColor: "#FECACA", borderWidth: 1 }]}>
+      {/* DEVICEMOTION & SALLAMA DURUMU */}
+      <Animated.View
+        entering={FadeInDown.delay(100)}
+        style={[styles.card, { borderColor: "#FECACA", borderWidth: 1 }]}
+      >
         <View style={styles.headerRow}>
           <Ionicons name="warning" size={28} color="#EF4444" />
-          <Text style={styles.cardTitle}>Acil Durum (Sallama)</Text>
+          <Text style={styles.cardTitle}>Kaza / Düşme Sensörleri</Text>
         </View>
+        <Text style={styles.desc}>
+          İvmeölçer ve DeviceMotion aktif. Düşme veya sert sallama algılanırsa
+          yardım çağrılır.
+        </Text>
         <View style={styles.progressBarBg}>
           <View
             style={[
@@ -251,6 +248,67 @@ export default function DutyTrackingScreen() {
             ]}
           />
         </View>
+        <TouchableOpacity
+          style={styles.testBtn}
+          onPress={() => triggerEmergency("Manuel Test Sinyali")}
+        >
+          <Text style={{ color: "#EF4444", fontWeight: "bold" }}>
+            Acil Durum Sinyalini Test Et
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* DİĞER KARTLAR (Toplantı & Adım) */}
+      <View style={{ flexDirection: "row", gap: 10, marginBottom: 15 }}>
+        <View
+          style={[
+            styles.card,
+            {
+              flex: 1,
+              marginBottom: 0,
+              backgroundColor: isMeetingMode ? "#f5f4e5" : "#FFF",
+            },
+          ]}
+        >
+          <Ionicons
+            name={isMeetingMode ? "volume-mute" : "volume-high"}
+            size={24}
+            color="#e8da12"
+          />
+          <Text style={{ fontWeight: "bold", marginTop: 5, color: "#d8b60e" }}>
+            Toplantı Modu
+          </Text>
+          <Text style={{ fontSize: 12, color: "#666" }}>Ters Çevir</Text>
+        </View>
+        <View style={[styles.card, { flex: 1, marginBottom: 0 }]}>
+          <Ionicons name="footsteps" size={24} color="#10B981" />
+          <Text style={{ fontWeight: "bold", marginTop: 5 }}>
+            {stepCount} Adım
+          </Text>
+          <Text style={{ fontSize: 12, color: "#666" }}>Pedometer</Text>
+        </View>
+      </View>
+
+      {/* CANLI SİSTEM LOGLARI (SİNYALİN GİTTİĞİNİ BURADAN ANLAYACAKSIN) */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>📡 Canlı Sensör & Sinyal Logları</Text>
+        {systemLogs.length === 0 ? (
+          <Text style={{ color: "#999", fontStyle: "italic", marginTop: 10 }}>
+            Henüz bir hareket veya sinyal yok...
+          </Text>
+        ) : (
+          systemLogs.map((log, index) => (
+            <Text
+              key={index}
+              style={[
+                styles.logText,
+                log.includes("🚨") && { color: "#EF4444", fontWeight: "bold" },
+              ]}
+            >
+              {log}
+            </Text>
+          ))
+        )}
       </View>
 
       <TouchableOpacity
@@ -265,7 +323,12 @@ export default function DutyTrackingScreen() {
               text1: "Hata",
               text2: "Personel seçin!",
             });
-          if (isDutyActive) updateStepCount(selectedTeacherId, stepCount);
+          if (isDutyActive) {
+            updateStepCount(selectedTeacherId, stepCount);
+            addLog("Nöbet Bitirildi. Veriler Kaydedildi.");
+          } else {
+            addLog("Nöbet Başladı. Sensörler Dinleniyor...");
+          }
           setIsDutyActive(!isDutyActive);
         }}
       >
@@ -286,6 +349,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     elevation: 3,
   },
+  emergencyBg: {
+    backgroundColor: "#FEF2F2",
+    borderColor: "#FECACA",
+    borderWidth: 2,
+  },
   headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
   cardTitle: {
     fontSize: 18,
@@ -294,28 +362,51 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   desc: { fontSize: 13, color: "#6B7280", marginBottom: 15 },
-  statBox: { alignItems: "center" },
-  statNumber: { fontSize: 48, fontWeight: "900", color: "#10B981" },
-  statLabel: { fontSize: 14, color: "#6B7280", fontWeight: "bold" },
   progressBarBg: {
     height: 12,
     backgroundColor: "#E5E7EB",
     borderRadius: 6,
     overflow: "hidden",
+    marginTop: 10,
   },
   progressBarFill: { height: "100%", borderRadius: 6 },
   testBtn: {
-    marginTop: 5,
+    marginTop: 15,
     padding: 10,
     borderRadius: 8,
     alignItems: "center",
     borderWidth: 1,
+    borderColor: "#FECACA",
+    backgroundColor: "#FEF2F2",
+  },
+  compassContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+  },
+  compassNeedle: {
+    width: 80,
+    height: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headingText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginTop: 10,
+    color: "#333",
+  },
+  logText: {
+    fontSize: 13,
+    color: "#4B5563",
+    marginTop: 5,
+    fontFamily: "monospace",
   },
   mainBtn: {
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 5,
     marginBottom: 40,
   },
   mainBtnText: { color: "white", fontSize: 18, fontWeight: "bold" },
