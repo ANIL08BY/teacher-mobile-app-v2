@@ -66,9 +66,13 @@ export default function DutyTrackingScreen() {
       });
 
       // JİROSKOP (Toplantı Modu)
-      Gyroscope.setUpdateInterval(500);
+      Gyroscope.setUpdateInterval(100); // 500'den 100'e düşürdük (Saniyede 10 kez tarayacak!)
       gyroSub = Gyroscope.addListener((data) => {
-        if (Math.abs(data.x) > 3) toggleMeetingMode();
+        // Hem X (öne takla) hem Y (sağa/sola yuvarlama) eksenini kontrol ediyoruz.
+        // Hassasiyet eşiğini 3'ten 2.5'e çektik (Daha ufak bilek hareketini algılar).
+        if (Math.abs(data.x) > 2.5 || Math.abs(data.y) > 2.5) {
+          toggleMeetingMode();
+        }
       });
 
       // MANYETOMETRE (Pusula - Acil Toplanma Yönü)
@@ -122,16 +126,30 @@ export default function DutyTrackingScreen() {
     return () => stepSub?.remove();
   }, [isDutyActive]);
 
+  // Bekleme süresi (cooldown) için bir referans ekliyoruz
+  const lastToggleTime = useRef(0);
+
   const toggleMeetingMode = () => {
+    // SPAM KORUMASI: İki tetikleme arasında en az 2 saniye geçmeli
+    const now = Date.now();
+    if (now - lastToggleTime.current < 2000) return;
+    lastToggleTime.current = now;
+
     setIsMeetingMode((prev) => {
       const newStatus = !prev;
-      Vibration.vibrate(100);
-      if (selectedTeacherId) updateMeetingStatus(selectedTeacherId, newStatus);
-      addLog(newStatus ? "Toplantı Modu Aktif" : "Normal Moda Dönüldü");
-      Toast.show({
-        type: newStatus ? "info" : "success",
-        text1: newStatus ? "🔇 Toplantı Modu" : "🔊 Normal Mod",
-      });
+
+      // REACT RENDER HATASI ÇÖZÜMÜ: Yan etkileri (Side Effects) asenkron yapıyoruz
+      setTimeout(() => {
+        Vibration.vibrate(100);
+        if (selectedTeacherId)
+          updateMeetingStatus(selectedTeacherId, newStatus);
+        addLog(newStatus ? "Toplantı Modu Aktif" : "Normal Moda Dönüldü");
+        Toast.show({
+          type: newStatus ? "info" : "success",
+          text1: newStatus ? "🔇 Toplantı Modu" : "🔊 Normal Mod",
+        });
+      }, 0);
+
       return newStatus;
     });
   };
