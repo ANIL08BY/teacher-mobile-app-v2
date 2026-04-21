@@ -18,7 +18,7 @@ export async function registerForPushNotificationsAsync() {
       return;
     }
 
-    // 🔥 Hatanın çözümü burada: projectId'yi daha kapsamlı arıyoruz
+    // Hatanın çözümü burada: projectId'yi daha kapsamlı arıyoruz
     const projectId = 
       Constants?.expoConfig?.extra?.eas?.projectId ?? 
       Constants?.easConfig?.projectId ?? 

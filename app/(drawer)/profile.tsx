@@ -260,7 +260,7 @@ export default function ProfileScreen() {
             )}
           </TouchableOpacity>
 
-          {/* 🔥 HESABI SİL BUTONU */}
+          {/* HESABI SİL BUTONU */}
           <TouchableOpacity
             style={styles.deleteBtn}
             onPress={handleDeleteAccount}

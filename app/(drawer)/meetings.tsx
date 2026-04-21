@@ -37,8 +37,8 @@ interface MeetingNote {
   title: string;
   branch: string;
   content: string; // Metin olarak girilen karar
-  pdfUrl?: string; // YENİ: Eğer dışarıdan PDF yüklendiyse
-  fileName?: string; // YENİ: Yüklenen dosyanın adı
+  pdfUrl?: string; // Eğer dışarıdan PDF yüklendiyse
+  fileName?: string; // Yüklenen dosyanın adı
   date: string;
   createdAt: any;
 }
@@ -59,7 +59,7 @@ export default function MeetingsScreen() {
   const [branch, setBranch] = useState("");
   const [content, setContent] = useState("");
 
-  // YENİ: Dosya Yükleme Stateleri
+  // Dosya Yükleme Stateleri
   const [selectedFile, setSelectedFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
@@ -76,7 +76,7 @@ export default function MeetingsScreen() {
     "Diğer",
   ];
 
-  // (ESKİ) PDF ÇIKTI ALMA FONKSİYONU - Korundu
+  // (ESKİ) PDF ÇIKTI ALMA FONKSİYONU
   const handleExportPDF = async () => {
     if (notes.length === 0)
       return Alert.alert("Hata", "Çıktı alınacak karar bulunamadı.");
@@ -139,7 +139,7 @@ export default function MeetingsScreen() {
     fetchNotes();
   }, []);
 
-  // YENİ: Cihazdan PDF Seçme
+  // Cihazdan PDF Seçme
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -288,7 +288,7 @@ export default function MeetingsScreen() {
                 <Text style={styles.noteTitle}>{note.title}</Text>
                 <Text style={styles.noteContent}>{note.content}</Text>
 
-                {/* YENİ: EĞER PDF EKLENMİŞSE GÖSTER */}
+                {/* EĞER PDF EKLENMİŞSE GÖSTER */}
                 {note.pdfUrl && (
                   <TouchableOpacity
                     style={styles.attachmentBtn}
@@ -364,7 +364,7 @@ export default function MeetingsScreen() {
               />
             </View>
 
-            {/* YENİ: DOSYA YÜKLEME VEYA METİN SEÇİMİ */}
+            {/* DOSYA YÜKLEME VEYA METİN SEÇİMİ */}
             <Text style={styles.inputLabel}>
               Karar İçeriği (Yazın VEYA PDF Yükleyin):
             </Text>
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   attachmentText: {
-    color: "#4F46E5",
+    color: "#281eef",
     marginLeft: 8,
     fontSize: 13,
     fontWeight: "bold",
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     marginBottom: 15,
   },
-  pickFileText: { color: "#4F46E5", marginLeft: 8, fontWeight: "bold" },
+  pickFileText: { color: "#2116eb", marginLeft: 8, fontWeight: "bold" },
 
   saveBtn: {
     backgroundColor: "#10B981",

@@ -124,7 +124,7 @@ export default function DocumentsScreen() {
         });
 
         // ---------------------------------------------------------
-        // 🔥 YENİ: İDARECİLERE BİLDİRİM GÖNDERME BÖLÜMÜ 🔥
+        // İDARECİLERE BİLDİRİM GÖNDERME BÖLÜMÜ
         // ---------------------------------------------------------
         try {
           // İdarecileri (Müdür, Müdür Baş Yrd., Müdür Yrd.) bul
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     marginBottom: 4,
   },
-  cardType: { fontSize: 13, color: "#4F46E5", fontWeight: "600" },
+  cardType: { fontSize: 13, color: "#2218e9", fontWeight: "600" },
   cardDate: { fontSize: 12, color: "#9CA3AF", marginTop: 4 },
   actionButtons: { flexDirection: "row", gap: 10 },
   iconBtn: { padding: 5 },
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 30,
     right: 20,
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#2a20e5",
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   uploadBtn: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#241ae5",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",

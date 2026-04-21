@@ -82,7 +82,7 @@ export default function SettingsScreen() {
     );
   }
 
-  // İŞLEM FONKSİYONLARI VE TOAST BİLDİRİMLERİ 🔥
+  // İŞLEM FONKSİYONLARI VE TOAST BİLDİRİMLERİ
   const toggleLanguage = () => {
     const newLang = locale === "tr" ? "en" : "tr";
     i18n.locale = newLang;
@@ -157,7 +157,7 @@ export default function SettingsScreen() {
 
           // İşlem bittikten sonra Toast ile bildiriyoruz
           Toast.show({
-            type: "error", // Yıkıcı bir işlem olduğu için kırmızı (error) renk mantıklıdır
+            type: "error", // Yıkıcı bir işlem olduğu için kırmızı (error) renk
             text1: "⚠️ Veritabanı Sıfırlandı",
             text2: "Sistemdeki tüm kayıtlar kalıcı olarak silindi.",
             visibilityTime: 3500,

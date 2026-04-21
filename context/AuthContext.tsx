@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // 4. ÇIKIŞ YAPMA
   const logout = async () => {
     await signOut(auth);
-    // 🔥 YENİ: ÇIKIŞ YAPILDI TOAST BİLDİRİMİ
+    // ÇIKIŞ YAPILDI TOAST BİLDİRİMİ
     Toast.show({
       type: "info",
       text1: "👋 Çıkış Yapıldı",
@@ -173,7 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Başarı Toast'u UI (profile.tsx) tarafında gösteriliyor.
     } catch (error: any) {
       if (error.code === "auth/requires-recent-login") {
-        // 🔥 YENİ: GÜVENLİK GEREĞİ SİLİNEMEME DURUMU TOAST BİLDİRİMİ
+        // GÜVENLİK GEREĞİ SİLİNEMEME DURUMU TOAST BİLDİRİMİ
         Toast.show({
           type: "error",
           text1: "Güvenlik Uyarısı",

@@ -8,7 +8,13 @@ import {
   Vibration,
   ScrollView,
 } from "react-native";
-import { Accelerometer, Pedometer, Gyroscope } from "expo-sensors";
+import {
+  Accelerometer,
+  Pedometer,
+  Gyroscope,
+  Magnetometer,
+  DeviceMotion,
+} from "expo-sensors";
 import { Ionicons } from "@expo/vector-icons";
 import { useTeachers } from "../../context/TeacherContext";
 import CustomDropdown from "../../components/CustomDropdown";
@@ -31,6 +37,9 @@ export default function DutyTrackingScreen() {
   const teacherOptions = teachers.map((t) => t.name + " " + t.surname);
   const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
 
+  const [heading, setHeading] = useState(0); // Pusula derecesi
+  const [isFallen, setIsFallen] = useState(false); // Düşme durumu
+
   // 1. İVMEÖLÇER (SALLAMA) & JİROSKOP (TOPLANTI MODU) DİNLEYİCİSİ
   useEffect(() => {
     let accSub: any;
@@ -50,7 +59,7 @@ export default function DutyTrackingScreen() {
         }
       });
 
-      // 🔥 JİROSKOP: Dönme hareketini algılar
+      // JİROSKOP: Dönme hareketini algılar
       Gyroscope.setUpdateInterval(500);
       gyroSub = Gyroscope.addListener((data) => {
         // Eğer telefon hızlıca x ekseninde döndürülürse (masaya ters kapatma hareketi)
@@ -114,6 +123,52 @@ export default function DutyTrackingScreen() {
     );
   };
 
+  // 3. MAGNETOMETRE (PUSULA) DİNLEYİCİSİ
+  useEffect(() => {
+    let sub: any;
+    if (isDutyActive) {
+      Magnetometer.setUpdateInterval(500);
+      sub = Magnetometer.addListener((data) => {
+        // Manyetik veriden derece hesaplama
+        let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
+        if (angle < 0) angle += 360;
+        setHeading(Math.round(angle));
+      });
+    }
+    return () => sub?.remove();
+  }, [isDutyActive]);
+
+  // 4. DEVICEMOTION (DÜŞME ALGILAMA)
+  useEffect(() => {
+    let motionSub: any;
+    if (isDutyActive) {
+      DeviceMotion.setUpdateInterval(200);
+      motionSub = DeviceMotion.addListener((event) => {
+        const { acceleration, rotationRate } = event;
+
+        // Ani ivmelenme ve sert dönüşü kontrol et (Düşme Algoritması)
+        if (acceleration && rotationRate) {
+          const totalAcc = Math.sqrt(
+            acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2,
+          );
+          const totalRot =
+            Math.abs(rotationRate.alpha) + Math.abs(rotationRate.beta);
+
+          if (totalAcc > 25 && totalRot > 5) {
+            // Sert düşme eşiği
+            setIsFallen(true);
+            Vibration.vibrate([100, 500, 100, 500]);
+            Alert.alert(
+              "🚨 Düşme Algılandı!",
+              "İyi misiniz? 10 saniye içinde yanıt vermezseniz idareye yardım çağrısı gönderilecek.",
+            );
+          }
+        }
+      });
+    }
+    return () => motionSub?.remove();
+  }, [isDutyActive]);
+
   return (
     <ScrollView style={styles.container}>
       <Animated.View entering={FadeInDown} style={styles.card}>
@@ -140,16 +195,16 @@ export default function DutyTrackingScreen() {
         entering={FadeInDown.delay(100)}
         style={[
           styles.card,
-          { backgroundColor: isMeetingMode ? "#F3E5F5" : "#FFF" },
+          { backgroundColor: isMeetingMode ? "#f5f3e5" : "#FFF" },
         ]}
       >
         <View style={styles.headerRow}>
           <Ionicons
             name={isMeetingMode ? "volume-mute" : "volume-high"}
             size={28}
-            color="#9C27B0"
+            color="#d6d314"
           />
-          <Text style={[styles.cardTitle, { color: "#7B1FA2" }]}>
+          <Text style={[styles.cardTitle, { color: "#e0cf11" }]}>
             Toplantı Modu (Jiroskop)
           </Text>
         </View>
@@ -158,10 +213,10 @@ export default function DutyTrackingScreen() {
           toplantı moduna geçebilirsiniz.
         </Text>
         <TouchableOpacity
-          style={[styles.testBtn, { borderColor: "#9C27B0" }]}
+          style={[styles.testBtn, { borderColor: "#dca50c" }]}
           onPress={toggleMeetingMode}
         >
-          <Text style={{ color: "#9C27B0", fontWeight: "bold" }}>
+          <Text style={{ color: "#ded00b", fontWeight: "bold" }}>
             Modu Manuel Değiştir
           </Text>
         </TouchableOpacity>
@@ -222,7 +277,6 @@ export default function DutyTrackingScreen() {
   );
 }
 
-// ... Stiller (Öncekiyle aynı, sadece mor renkli dokunuşlar eklendi)
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 15, backgroundColor: "#F3F4F6" },
   card: {

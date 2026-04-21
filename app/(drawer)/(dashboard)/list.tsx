@@ -38,7 +38,7 @@ export default function ListScreen() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 🔥 YENİ: AKTİF FİLTRE DURUMU
+  // AKTİF FİLTRE DURUMU
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,7 +78,7 @@ export default function ListScreen() {
         branch.includes(query) ||
         role.includes(query);
 
-      // 🔥 2. YENİ İK FİLTRE MANTIĞI
+      // 2. YENİ İK FİLTRE MANTIĞI
       let matchesFilter = true;
       if (activeFilter === "maternity") {
         matchesFilter = teacher.isOnMaternityLeave === true;
@@ -125,7 +125,7 @@ export default function ListScreen() {
 
       return a.title.localeCompare(b.title);
     });
-  }, [teachers, searchQuery, activeFilter]); // 👈 activeFilter da eklendi
+  }, [teachers, searchQuery, activeFilter]); // activeFilter da eklendi
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -251,7 +251,7 @@ export default function ListScreen() {
             )}
           </View>
 
-          {/* 🔥 YENİ: DİNAMİK FİLTRELEME ÇİPLERİ */}
+          {/* DİNAMİK FİLTRELEME ÇİPLERİ */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, paddingVertical: 12, fontSize: 16, color: "#333" },
   clearBtn: { padding: 5 },
 
-  // 🔥 FİLTRE STİLLERİ
+  // FİLTRE STİLLERİ
   filterScroll: { marginBottom: 15 },
   filterContainer: { gap: 10, paddingHorizontal: 2, paddingBottom: 5 },
   filterChip: {

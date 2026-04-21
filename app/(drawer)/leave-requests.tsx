@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: "bold",
-    color: "#4F46E5",
+    color: "#170cee",
     marginBottom: 4,
   },
   cardDates: {
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 30,
     right: 20,
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#1d13e1",
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: "row", justifyContent: "space-between" },
   submitBtn: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#2217ed",
     padding: 16,
     borderRadius: 12,
     alignItems: "center",

@@ -319,7 +319,6 @@ export default function ExamScheduleScreen() {
   );
 }
 
-// --- STİLLER ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,

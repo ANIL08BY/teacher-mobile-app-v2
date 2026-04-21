@@ -10,7 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
 import CustomDropdown from "../../components/CustomDropdown";
-import Toast from "react-native-toast-message"; // 🔥 TOAST IMPORT EDİLDİ
+import Toast from "react-native-toast-message";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
@@ -30,7 +30,7 @@ export default function RegisterScreen() {
   const router = useRouter();
 
   const handleRegister = async () => {
-    // 🔥 YENİ: Boş alan kontrolü (Eksik bilgi girilirse Toast ile uyar)
+    // Boş alan kontrolü (Eksik bilgi girilirse Toast ile uyar)
     if (!name || !email || !password || !role) {
       return Toast.show({
         type: "error",
@@ -42,7 +42,7 @@ export default function RegisterScreen() {
     try {
       await register(email, password, name, role);
 
-      // 🔥 BAŞARILI KAYIT TOAST BİLDİRİMİ
+      // BAŞARILI KAYIT TOAST BİLDİRİMİ
       Toast.show({
         type: "success",
         text1: "🎉 Kayıt Başarılı",
@@ -55,7 +55,7 @@ export default function RegisterScreen() {
         router.push("/(auth)/login" as any);
       }, 1500);
     } catch (error: any) {
-      // 🔥 HATALI KAYIT TOAST BİLDİRİMİ (Örn: Bu e-posta zaten kullanımda)
+      // HATALI KAYIT TOAST BİLDİRİMİ (Örn: Bu e-posta zaten kullanımda)
       Toast.show({
         type: "error",
         text1: "Kayıt Hatası",

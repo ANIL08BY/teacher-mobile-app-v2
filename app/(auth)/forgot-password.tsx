@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
-import Toast from "react-native-toast-message"; // 🔥 TOAST IMPORT EDİLDİ
+import Toast from "react-native-toast-message";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
@@ -18,7 +18,7 @@ export default function ForgotPasswordScreen() {
   const router = useRouter();
 
   const handleReset = async () => {
-    // 🔥 YENİ: Boş alan kontrolü
+    // Boş alan kontrolü
     if (!email || !newPassword) {
       return Toast.show({
         type: "error",
@@ -30,7 +30,7 @@ export default function ForgotPasswordScreen() {
     try {
       await resetPassword(email, newPassword);
 
-      // 🔥 BAŞARILI SIFIRLAMA TOAST BİLDİRİMİ
+      // BAŞARILI SIFIRLAMA TOAST BİLDİRİMİ
       Toast.show({
         type: "success",
         text1: "✨ Başarılı!",
@@ -43,7 +43,7 @@ export default function ForgotPasswordScreen() {
         router.push("/(auth)/login" as any);
       }, 1500);
     } catch (error: any) {
-      // 🔥 HATALI SIFIRLAMA TOAST BİLDİRİMİ
+      // HATALI SIFIRLAMA TOAST BİLDİRİMİ
       Toast.show({
         type: "error",
         text1: "Sıfırlama Hatası",

@@ -230,7 +230,7 @@ export default function HelpdeskScreen() {
       {loading ? (
         <ActivityIndicator
           size="large"
-          color="#4F46E5"
+          color="#1d13e6"
           style={{ marginTop: 50 }}
         />
       ) : (
@@ -493,12 +493,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#4F46E5",
+    borderColor: "#2f25ef",
     borderRadius: 8,
     padding: 12,
     backgroundColor: "#EEF2FF",
   },
-  imagePickerBtnText: { color: "#4F46E5", fontWeight: "bold", marginLeft: 8 },
+  imagePickerBtnText: { color: "#2c22e8", fontWeight: "bold", marginLeft: 8 },
 
   previewContainer: { position: "relative", marginBottom: 15 },
   imagePreview: { width: "100%", height: 150, borderRadius: 8 },

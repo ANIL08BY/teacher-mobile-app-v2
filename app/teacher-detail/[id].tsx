@@ -369,7 +369,7 @@ export default function DetailScreen() {
         );
       }
 
-      // 🔥 TypeScript Hatası Çözüldü
+      // TypeScript Hatası Çözüldü
       const contact = {
         contactType: Contacts.ContactTypes.Person,
         name: `${teacher.name} ${teacher.surname}`,
@@ -694,7 +694,7 @@ export default function DetailScreen() {
           </Text>
         </View>
 
-        {/* 🔥 GÜNCELLENDİ: Taşan Telefon ve Butonlar İçin Altlı-Üstlü Ferah Yerleşim */}
+        {/* GÜNCELLENDİ: Taşan Telefon ve Butonlar İçin Altlı-Üstlü Ferah Yerleşim */}
         <View
           style={[
             styles.infoRow,

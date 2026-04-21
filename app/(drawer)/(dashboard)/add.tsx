@@ -20,8 +20,8 @@ import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
-import * as Contacts from "expo-contacts"; // 🔥 YENİ EKLENDİ
-import * as Linking from "expo-linking"; // 🔥 YENİ EKLENDİ
+import * as Contacts from "expo-contacts";
+import * as Linking from "expo-linking";
 import Toast from "react-native-toast-message";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../../utils/firebaseConfig";
@@ -147,7 +147,7 @@ export default function AddScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      // 🔥 GÜNCELLENDİ: Ayarlara yönlendirme
+      // GÜNCELLENDİ: Ayarlara yönlendirme
       Alert.alert(
         "İzin Reddedildi",
         "Profil fotoğrafı eklemek için galeri erişim izni gereklidir.",
@@ -167,7 +167,7 @@ export default function AddScreen() {
     if (!result.canceled) setTAvatar(result.assets[0].uri);
   };
 
-  // 🔥 YENİ: Rehberden Kişi Seçme Motoru
+  // Rehberden Kişi Seçme Motoru
   const handlePickContact = async () => {
     try {
       const { status } = await Contacts.requestPermissionsAsync();
@@ -406,7 +406,7 @@ export default function AddScreen() {
         <Text style={styles.avatarHint}>Fotoğraf Seçmek İçin Dokunun</Text>
       </View>
 
-      {/* 🔥 YENİ: Rehberden Çek Butonu */}
+      {/* Rehberden Çek Butonu */}
       <View style={styles.headerWithButton}>
         <Text style={[styles.sectionHeader, { marginBottom: 0 }]}>
           Temel Bilgiler
@@ -415,7 +415,7 @@ export default function AddScreen() {
           style={styles.pickContactBtn}
           onPress={handlePickContact}
         >
-          <Ionicons name="people-circle" size={20} color="#4F46E5" />
+          <Ionicons name="people-circle" size={20} color="#120ee2" />
           <Text style={styles.pickContactBtnText}>Rehberden Seç</Text>
         </TouchableOpacity>
       </View>
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  // 🔥 YENİ: Başlık ve buton için yan yana düzen
+  // Başlık ve buton için yan yana düzen
   headerWithButton: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   pickContactBtnText: {
-    color: "#4F46E5",
+    color: "#201cea",
     fontWeight: "bold",
     marginLeft: 5,
     fontSize: 13,
@@ -814,7 +814,7 @@ const styles = StyleSheet.create({
   dynamicLabel: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#4338CA",
+    color: "#251aed",
     marginBottom: 8,
   },
   radioBtn: {
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#2b21e8",
     width: 32,
     height: 32,
     borderRadius: 16,

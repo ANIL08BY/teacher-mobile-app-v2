@@ -460,7 +460,7 @@ export default function DashboardScreen() {
         Hızlı İşlemler
       </Animated.Text>
 
-      {/* 🔥 AKILLI DİNAMİK AKSİYON BUTONLARI (ROLE GÖRE DEĞİŞİR) */}
+      {/* AKILLI DİNAMİK AKSİYON BUTONLARI (ROLE GÖRE DEĞİŞİR) */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -678,7 +678,7 @@ export default function DashboardScreen() {
             <Ionicons name="close" size={30} color="white" />
           </Pressable>
 
-          {/* 🔥 YENİ: Uydu / Normal Harita Geçiş Butonu */}
+          {/* Uydu / Normal Harita Geçiş Butonu */}
           <Pressable
             style={styles.mapTypeBtn}
             onPress={() =>
@@ -754,7 +754,7 @@ export default function DashboardScreen() {
                 </React.Fragment>
               ))}
 
-              {/* 🔥 YENİ: İNTERAKTİF EKLENEN İŞARETÇİLER (Silinebilir) */}
+              {/* İNTERAKTİF EKLENEN İŞARETÇİLER (Silinebilir) */}
               {interactiveMarkers.map((marker, index) => (
                 <Marker
                   key={marker.id}
@@ -762,7 +762,7 @@ export default function DashboardScreen() {
                   pinColor="yellow"
                   title={`📍 Özel İşaretleme ${index + 1}`}
                   description="Silmek için bu baloncuğa dokunun 🗑️"
-                  // 🔥 YENİ: Baloncuğa tıklanınca silme onayı iste
+                  // Baloncuğa tıklanınca silme onayı iste
                   onCalloutPress={() => {
                     Alert.alert(
                       "İşareti Kaldır",

@@ -12,7 +12,7 @@ import {
   generateExamScheduleAI,
   selectDepartmentHeadAI,
 } from "../utils/aiService";
-import Toast from "react-native-toast-message"; // 🔥 TOAST IMPORT EDİLDİ (Alert yerine)
+import Toast from "react-native-toast-message";
 
 // FIREBASE İMPORTLARI
 import {
@@ -98,7 +98,7 @@ export const TeacherProvider = ({ children }: { children: ReactNode }) => {
       await setDoc(doc(db, "teachers", teacher.id), teacher);
     } catch (error) {
       console.error("Öğretmen eklenirken hata:", error);
-      // 🔥 KABA ALERT YERİNE ŞIK HATA TOAST'I
+      // KABA ALERT YERİNE ŞIK HATA TOAST'I
       Toast.show({
         type: "error",
         text1: "Eşitleme Hatası",
@@ -267,7 +267,7 @@ export const TeacherProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 🔥 YENİ: SENSÖR BİLGİLERİNİ FİREBASE'E YAZMA FONKSİYONLARI
+  // SENSÖR BİLGİLERİNİ FİREBASE'E YAZMA FONKSİYONLARI
   const updateStepCount = async (teacherId: string, steps: number) => {
     try {
       await updateDoc(doc(db, "teachers", teacherId), { stepCount: steps });
