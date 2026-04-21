@@ -34,4 +34,6 @@ export interface Teacher {
   spouseInstitution?: string; // Eş Durumu (Eşinin Çalıştığı Kurum/İl)
   childrenCount?: number; // Çocuk Yardımı İçin Çocuk Sayısı
   isOnMaternityLeave?: boolean; // Kadın Personel İçin Doğum İzni Durumu
+  stepCount?: number; // Günlük Nöbet Adım Sayısı
+  lastEmergency?: string; // Son Acil Durum Sinyali (Tarih/Saat)
 }

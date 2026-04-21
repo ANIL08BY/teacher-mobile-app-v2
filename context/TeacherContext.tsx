@@ -43,6 +43,8 @@ interface TeacherContextType {
     branch: string,
   ) => Promise<{ selectedTeacher: string; reason: string } | null>;
   assignDepartmentHead: (branch: string, newHeadId: string) => Promise<void>;
+  updateStepCount: (teacherId: string, steps: number) => Promise<void>;
+  logEmergency: (teacherId: string, details: string) => Promise<void>;
 }
 
 export const TeacherContext = createContext<TeacherContextType | undefined>(
@@ -255,6 +257,25 @@ export const TeacherProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // 🔥 YENİ: SENSÖR BİLGİLERİNİ FİREBASE'E YAZMA FONKSİYONLARI
+  const updateStepCount = async (teacherId: string, steps: number) => {
+    try {
+      await updateDoc(doc(db, "teachers", teacherId), { stepCount: steps });
+    } catch (error) {
+      console.error("Adım sayısı güncellenemedi", error);
+    }
+  };
+
+  const logEmergency = async (teacherId: string, details: string) => {
+    try {
+      await updateDoc(doc(db, "teachers", teacherId), {
+        lastEmergency: details,
+      });
+    } catch (error) {
+      console.error("Acil durum loglanamadı", error);
+    }
+  };
+
   return (
     <TeacherContext.Provider
       value={{
@@ -272,6 +293,8 @@ export const TeacherProvider = ({ children }: { children: ReactNode }) => {
         generateExamSchedule,
         selectDepartmentHead,
         assignDepartmentHead,
+        updateStepCount,
+        logEmergency,
       }}
     >
       {children}

@@ -223,6 +223,22 @@ export default function DrawerLayout() {
         }}
       />
 
+      {/* NÖBET TAKİP & GÜVENLİK (SENSÖRLER) */}
+      <Drawer.Screen
+        name="duty-tracking"
+        options={{
+          title: "Nöbet Takip & Güvenlik",
+          drawerLabel: "Nöbet Takip (Sensör)",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+
       {/* SİSTEM AYARLARI (Sadece Yönetim) */}
       <Drawer.Screen
         name="settings"

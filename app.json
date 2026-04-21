@@ -21,7 +21,8 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "READ_CONTACTS",
-        "WRITE_CONTACTS"
+        "WRITE_CONTACTS",
+        "ACTIVITY_RECOGNITION"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
