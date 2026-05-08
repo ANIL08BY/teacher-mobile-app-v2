@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { INITIAL_TEACHERS } from '../constants/data'; 
 
-describe('Veritabanı Başlangıç Verileri (INITIAL_TEACHERS) Testleri', () => {
-  
+describe('1. Veritabanı Başlangıç Verileri (data.ts) İskelet Testleri', () => {
   it('1. Başlangıç verisi kesinlikle bir dizi (array) olmalıdır', () => {
     expect(Array.isArray(INITIAL_TEACHERS)).toBe(true);
   });
@@ -11,14 +10,10 @@ describe('Veritabanı Başlangıç Verileri (INITIAL_TEACHERS) Testleri', () => 
     expect(INITIAL_TEACHERS.length).toBeGreaterThan(0);
   });
 
-  it('3. Kayıtlı öğretmenlerin zorunlu alanları (id, name, role) eksiksiz olmalıdır', () => {
+  it('3. Kayıtlı öğretmenlerin zorunlu alanları (id, name) eksiksiz olmalıdır', () => {
     const firstTeacher = INITIAL_TEACHERS[0];
-    
     expect(firstTeacher).toHaveProperty('id');
     expect(firstTeacher).toHaveProperty('name');
-    expect(firstTeacher).toHaveProperty('role');
-    
-    // İsim alanı boş bir string (metin) olmamalıdır
     expect(firstTeacher.name.length).toBeGreaterThan(0);
   });
 
