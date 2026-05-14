@@ -12,14 +12,17 @@ import { useTeachers } from "../../context/TeacherContext";
 import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import i18n from "../../utils/i18n";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router"; // 🔥 useRouter eklendi
 import * as Linking from "expo-linking";
 import Toast from "react-native-toast-message";
+import { NativeModules } from "react-native";
+import { DeviceEventEmitter } from "react-native";
 
 export default function SettingsScreen() {
   const { resetDatabase, clearCache, teachers } = useTeachers();
   const { user } = useAuth();
   const navigation = useNavigation();
+  const router = useRouter(); // 🔥 Yönlendirici tanımlandı
 
   const isTopManagement =
     user &&
@@ -30,7 +33,6 @@ export default function SettingsScreen() {
   const [notifications, setNotifications] = useState<boolean | null>(true);
   const [locale, setLocale] = useState(i18n.locale);
 
-  // Çeviriyi her zaman mevcut state diline zorlama
   const t = (key: string) => i18n.t(key, { locale });
 
   useEffect(() => {
@@ -82,19 +84,26 @@ export default function SettingsScreen() {
     );
   }
 
-  // İŞLEM FONKSİYONLARI VE TOAST BİLDİRİMLERİ
-  const toggleLanguage = () => {
+  // 🔥 GÜNCELLENDİ: Dil Değiştirme ve Sinyal Gönderme
+  const toggleLanguage = async () => {
     const newLang = locale === "tr" ? "en" : "tr";
     i18n.locale = newLang;
     setLocale(newLang);
 
+    // 1. Seçilen dili telefona kalıcı olarak kaydet (Uygulama kapansa da unutmaz)
+    await AsyncStorage.setItem("appLanguage", newLang);
+
+    // 2. Tüm uygulamaya "Dil değişti, menüleri yenile" sinyali gönder
+    DeviceEventEmitter.emit("languageChanged", newLang);
+
     Toast.show({
       type: "success",
-      text1: "Dil Değiştirildi / Language Changed",
+      text1: newLang === "tr" ? "Dil Değiştirildi" : "Language Changed",
       text2:
         newLang === "tr"
-          ? "Uygulama dili Türkçe yapıldı."
-          : "App language set to English.",
+          ? "Menüler Türkçe yapıldı."
+          : "Menus updated to English.",
+      visibilityTime: 2000,
     });
   };
 
@@ -145,7 +154,6 @@ export default function SettingsScreen() {
   };
 
   const handleReset = async () => {
-    // Kritik işlem olduğu için Alert ile onay almaya devam ediyoruz
     Alert.alert(t("resetBtn"), t("a11yResetHint"), [
       { text: t("cancelBtn"), style: "cancel" },
       {
@@ -155,9 +163,8 @@ export default function SettingsScreen() {
           await resetDatabase();
           await loadSettingsData();
 
-          // İşlem bittikten sonra Toast ile bildiriyoruz
           Toast.show({
-            type: "error", // Yıkıcı bir işlem olduğu için kırmızı (error) renk
+            type: "error",
             text1: "⚠️ Veritabanı Sıfırlandı",
             text2: "Sistemdeki tüm kayıtlar kalıcı olarak silindi.",
             visibilityTime: 3500,
@@ -351,7 +358,7 @@ export default function SettingsScreen() {
             borderRadius: 12,
             marginVertical: 10,
           },
-          isDark && { backgroundColor: "#333" }, // Karanlık mod uyumu eklendi
+          isDark && { backgroundColor: "#333" },
         ]}
         onPress={() =>
           Linking.openURL(

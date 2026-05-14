@@ -240,6 +240,9 @@ export default function ListScreen() {
               placeholder="İsim, Branş veya Rol ile ara..."
               value={searchQuery}
               onChangeText={handleSearch}
+              // ERİŞİLEBİLİRLİK (ACCESSIBILITY) EKLENDİ
+              accessible={true}
+              accessibilityLabel="Öğretmen Ara"
             />
             {searchQuery.length > 0 && (
               <Pressable
@@ -381,7 +384,13 @@ export default function ListScreen() {
                 overshootRight={false}
                 overshootLeft={false}
               >
-                <View style={styles.teacherItemWrapper}>
+                {/* ERİŞİLEBİLİRLİK (ACCESSIBILITY) BURAYA EKLENDİ */}
+                <View
+                  style={styles.teacherItemWrapper}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.name} ${item.surname}, Branşı: ${item.branch}`}
+                >
                   {item.isDepartmentHead && (
                     <View style={styles.departmentHeadBadge}>
                       <Text style={styles.departmentHeadText}>

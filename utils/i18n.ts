@@ -1,5 +1,10 @@
 import { I18n } from 'i18n-js';
+import { I18nManager } from 'react-native';
 import * as Localization from 'expo-localization';
+
+// RTL dillerini sistem seviyesinde engelle
+I18nManager.allowRTL(false);
+I18nManager.forceRTL(false);
 
 const translations = {
   en: {
@@ -14,23 +19,55 @@ const translations = {
     notificationLabel: 'Notifications:',
     notificationBtnOn: 'Turn On Notifications',
     notificationBtnOff: 'Turn Off Notifications',
-    
-    // YENİ EKLENEN SABİT METİNLER
     themeDark: 'Dark Mode',
     themeLight: 'Light Mode',
     statusOn: 'ON',
     statusOff: 'OFF',
     cancelBtn: 'Cancel',
     okBtn: 'OK',
-
     unauthorizedTitle: 'Unauthorized Access',
     unauthorizedText: 'Only Administrators can view and modify system settings and the database.',
-    
     a11yLangHint: 'Changes the application language between English and Turkish.',
     a11yThemeHint: 'Changes the background color to dark or light mode.',
     a11yCacheHint: 'Deletes only temporary data, teachers will not be deleted.',
     a11yResetHint: 'Warning! Deletes all teachers and resets the entire database.',
-    a11yNotifHint: 'Toggles system notifications on or off.'
+    a11yNotifHint: 'Toggles system notifications on or off.',
+
+    // SOL MENÜ (DRAWER) VE ÇIKIŞ ÇEVİRİLERİ
+    logoutTitle: 'Logout',
+    logoutMsg: 'Are you sure you want to log out?',
+    logoutBtn: 'Log Out',
+    
+    menuSummary: 'Summary',
+    menuHomeTitle: 'Teacher Automation',
+    menuHomeLabel: 'Home',
+    menuProfile: 'My Profile',
+    menuScheduleTitle: 'Weekly Schedules',
+    menuScheduleLabel: 'Classes & Duty',
+    menuCalendarTitle: 'Event Calendar',
+    menuCalendarLabel: 'School Calendar',
+    menuDocumentsTitle: 'My Personnel File',
+    menuDocumentsLabel: 'My Documents',
+    menuAnnouncementsTitle: '📢 School Announcements',
+    menuAnnouncementsLabel: 'Announcement Board',
+    menuAddAnnouncementTitle: '✍️ New Announcement',
+    menuAddAnnouncementLabel: 'Publish Announcement',
+    menuPollsTitle: 'Polling System',
+    menuPollsLabel: 'Polls',
+    menuLeaveTitle: 'Leave Requests',
+    menuLeaveLabel: 'Leave Management',
+    menuExamsTitle: 'Exam & Invigilator Planning',
+    menuExamsLabel: 'Exams & Invigilators',
+    menuDeptHeadTitle: 'Department Head Selection',
+    menuDeptHeadLabel: 'Select Dept Head',
+    menuMeetingsTitle: 'Meeting Decisions',
+    menuMeetingsLabel: 'Meetings & Decisions',
+    menuHelpdeskTitle: 'Help',
+    menuHelpdeskLabel: 'Fault Reporting',
+    menuSensors: 'Device Sensors',
+    menuDutyTitle: 'Duty Tracking & Security',
+    menuDutyLabel: 'Duty Tracking (Sensor)',
+    menuAbout: 'About',
   },
   tr: {
     settingsTitle: 'Sistem Ayarları',
@@ -44,23 +81,55 @@ const translations = {
     notificationLabel: 'Bildirim Ayarı:',
     notificationBtnOn: 'Bildirimleri Aç',
     notificationBtnOff: 'Bildirimleri Kapat',
-    
-    // YENİ EKLENEN SABİT METİNLER
     themeDark: 'Karanlık Mod',
     themeLight: 'Aydınlık Mod',
     statusOn: 'AÇIK',
     statusOff: 'KAPALI',
     cancelBtn: 'İptal',
     okBtn: 'Tamam',
-
     unauthorizedTitle: 'Yetkisiz Erişim',
     unauthorizedText: 'Sistem ayarlarını ve veritabanını yalnızca Yöneticiler görüntüleyebilir ve değiştirebilir.',
-    
     a11yLangHint: 'Uygulama dilini Türkçe ve İngilizce arasında değiştirir.',
     a11yThemeHint: 'Arka plan rengini karanlık veya aydınlık mod olarak değiştirir.',
     a11yCacheHint: 'Sadece geçici verileri siler, kayıtlı öğretmenlere dokunmaz.',
     a11yResetHint: 'Dikkat! Tüm öğretmenleri siler ve veritabanını tamamen sıfırlar.',
-    a11yNotifHint: 'Sistem bildirimlerini açar veya kapatır.'
+    a11yNotifHint: 'Sistem bildirimlerini açar veya kapatır.',
+
+    // SOL MENÜ (DRAWER) VE ÇIKIŞ ÇEVİRİLERİ
+    logoutTitle: 'Çıkış',
+    logoutMsg: 'Hesabınızdan çıkış yapmak istediğinize emin misiniz?',
+    logoutBtn: 'Çıkış Yap',
+    
+    menuSummary: 'Özet',
+    menuHomeTitle: 'Öğretmen Otomasyonu',
+    menuHomeLabel: 'Ana Sayfa',
+    menuProfile: 'Profilim',
+    menuScheduleTitle: 'Haftalık Programlar',
+    menuScheduleLabel: 'Ders & Nöbet',
+    menuCalendarTitle: 'Etkinlik Takvimi',
+    menuCalendarLabel: 'Okul Takvimi',
+    menuDocumentsTitle: 'Özlük Dosyam',
+    menuDocumentsLabel: 'Belgelerim',
+    menuAnnouncementsTitle: '📢 Okul Duyuruları',
+    menuAnnouncementsLabel: 'Duyuru Panosu',
+    menuAddAnnouncementTitle: '✍️ Yeni Duyuru',
+    menuAddAnnouncementLabel: 'Duyuru Yayınla',
+    menuPollsTitle: 'Anket Sistemi',
+    menuPollsLabel: 'Anketler',
+    menuLeaveTitle: 'İzin Talepleri',
+    menuLeaveLabel: 'İzin İşlemleri',
+    menuExamsTitle: 'Sınav & Gözetmen Planlama',
+    menuExamsLabel: 'Sınav & Gözetmen',
+    menuDeptHeadTitle: 'Zümre Başkanı Seçimi',
+    menuDeptHeadLabel: 'Zümre Başkanı Seç',
+    menuMeetingsTitle: 'Toplantı Kararları',
+    menuMeetingsLabel: 'Toplantı & Kararlar',
+    menuHelpdeskTitle: 'Yardım',
+    menuHelpdeskLabel: 'Arıza Bildirimi',
+    menuSensors: 'Cihaz Sensörleri',
+    menuDutyTitle: 'Nöbet Takip & Güvenlik',
+    menuDutyLabel: 'Nöbet Takip (Sensör)',
+    menuAbout: 'Hakkında',
   }
 };
 

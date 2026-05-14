@@ -7,6 +7,7 @@ import {
   Alert,
   Vibration,
   ScrollView,
+  AccessibilityInfo, // ERİŞİLEBİLİRLİK: Sesli anons kütüphanesi eklendi
 } from "react-native";
 import {
   Accelerometer,
@@ -20,6 +21,7 @@ import { useTeachers } from "../../context/TeacherContext";
 import CustomDropdown from "../../components/CustomDropdown";
 import Toast from "react-native-toast-message";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import i18n from "../../utils/i18n"; // 🔥 i18n: Aktif dili alabilmek için eklendi
 
 export default function DutyTrackingScreen() {
   const { teachers, updateStepCount, logEmergency, updateMeetingStatus } =
@@ -43,7 +45,14 @@ export default function DutyTrackingScreen() {
   const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
 
   const addLog = (message: string) => {
-    const time = new Date().toLocaleTimeString("tr-TR");
+    // ULUSLARARASILAŞTIRMA (i18n): Saati seçilen dinamik dile göre formatla
+    const currentLocale = i18n.locale || "tr-TR";
+    const time = new Intl.DateTimeFormat(currentLocale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(new Date());
+
     setSystemLogs((prev) => [`[${time}] ${message}`, ...prev].slice(0, 5)); // Son 5 logu tut
   };
 
@@ -66,10 +75,8 @@ export default function DutyTrackingScreen() {
       });
 
       // JİROSKOP (Toplantı Modu)
-      Gyroscope.setUpdateInterval(100); // 500'den 100'e düşürdük (Saniyede 10 kez tarayacak!)
+      Gyroscope.setUpdateInterval(100);
       gyroSub = Gyroscope.addListener((data) => {
-        // Hem X (öne takla) hem Y (sağa/sola yuvarlama) eksenini kontrol ediyoruz.
-        // Hassasiyet eşiğini 3'ten 2.5'e çektik (Daha ufak bilek hareketini algılar).
         if (Math.abs(data.x) > 2.5 || Math.abs(data.y) > 2.5) {
           toggleMeetingMode();
         }
@@ -94,7 +101,6 @@ export default function DutyTrackingScreen() {
           const totalRot =
             Math.abs(rotationRate.alpha) + Math.abs(rotationRate.beta);
 
-          // Çok sert ivmelenme ve dönme varsa (Düşme Eşiği)
           if (totalAcc > 20 && totalRot > 5 && !isEmergencyTriggered.current) {
             isEmergencyTriggered.current = true;
             triggerEmergency("Personel Düşmesi Algılandı!");
@@ -126,11 +132,9 @@ export default function DutyTrackingScreen() {
     return () => stepSub?.remove();
   }, [isDutyActive]);
 
-  // Bekleme süresi (cooldown) için bir referans ekliyoruz
   const lastToggleTime = useRef(0);
 
   const toggleMeetingMode = () => {
-    // SPAM KORUMASI: İki tetikleme arasında en az 2 saniye geçmeli
     const now = Date.now();
     if (now - lastToggleTime.current < 2000) return;
     lastToggleTime.current = now;
@@ -138,12 +142,17 @@ export default function DutyTrackingScreen() {
     setIsMeetingMode((prev) => {
       const newStatus = !prev;
 
-      // REACT RENDER HATASI ÇÖZÜMÜ: Yan etkileri (Side Effects) asenkron yapıyoruz
       setTimeout(() => {
         Vibration.vibrate(100);
         if (selectedTeacherId)
           updateMeetingStatus(selectedTeacherId, newStatus);
         addLog(newStatus ? "Toplantı Modu Aktif" : "Normal Moda Dönüldü");
+
+        // ERİŞİLEBİLİRLİK: Mod değiştiğinde sesli anons yap
+        AccessibilityInfo.announceForAccessibility(
+          newStatus ? "Toplantı Modu Aktifleştirildi" : "Normal Moda Dönüldü",
+        );
+
         Toast.show({
           type: newStatus ? "info" : "success",
           text1: newStatus ? "🔇 Toplantı Modu" : "🔊 Normal Mod",
@@ -159,12 +168,23 @@ export default function DutyTrackingScreen() {
     Vibration.vibrate([500, 500, 500, 500]);
     addLog(`🚨 SİNYAL GÖNDERİLDİ: ${reason}`);
 
+    // ERİŞİLEBİLİRLİK: Acil durumda görme engelli kullanıcıyı anında uyar
+    AccessibilityInfo.announceForAccessibility(
+      `Acil durum sinyali gönderildi. Sebep: ${reason}`,
+    );
+
     if (selectedTeacherId) {
-      // Firebase'e logu yazıyoruz (Buradan gittiğini anlıyoruz)
-      logEmergency(
-        selectedTeacherId,
-        `${new Date().toLocaleString("tr-TR")} - ${reason}`,
-      );
+      // ULUSLARARASILAŞTIRMA (i18n): Tarih ve Saati uluslararası formata uygun kaydet
+      const currentLocale = i18n.locale || "tr-TR";
+      const formattedDate = new Intl.DateTimeFormat(currentLocale, {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date());
+
+      logEmergency(selectedTeacherId, `${formattedDate} - ${reason}`);
     }
 
     Alert.alert(
@@ -185,7 +205,10 @@ export default function DutyTrackingScreen() {
   return (
     <ScrollView style={styles.container}>
       <Animated.View entering={FadeInDown} style={styles.card}>
-        <Text style={styles.cardTitle}>Nöbetçi Personel</Text>
+        {/* ERİŞİLEBİLİRLİK: maxFontSizeMultiplier eklendi */}
+        <Text style={styles.cardTitle} maxFontSizeMultiplier={1.5}>
+          Nöbetçi Personel
+        </Text>
         <CustomDropdown
           placeholder="Personel Seç"
           options={teacherOptions}
@@ -207,25 +230,29 @@ export default function DutyTrackingScreen() {
       <Animated.View
         entering={FadeInDown.delay(50)}
         style={[styles.card, isEmergencyMode ? styles.emergencyBg : null]}
+        accessible={true} // ERİŞİLEBİLİRLİK
+        accessibilityRole="summary"
+        accessibilityLabel={`Pusula. Acil toplanma alanı yönünüz şu an ${heading} derece.`}
       >
         <View style={styles.headerRow}>
           <Ionicons
             name="compass"
             size={28}
             color={isEmergencyMode ? "#EF4444" : "#007AFF"}
+            importantForAccessibility="no" // İkonu okumasını engelle
           />
           <Text
             style={[styles.cardTitle, isEmergencyMode && { color: "#EF4444" }]}
+            maxFontSizeMultiplier={1.5}
           >
             Acil Toplanma Alanı Yönü
           </Text>
         </View>
-        <Text style={styles.desc}>
+        <Text style={styles.desc} maxFontSizeMultiplier={1.5}>
           Magnetometre (Pusula) verisine göre yönünüz:
         </Text>
 
         <View style={styles.compassContainer}>
-          {/* Cihazın dönüşüne göre tam tersi yönde dönen pusula oku */}
           <View
             style={[
               styles.compassNeedle,
@@ -236,9 +263,12 @@ export default function DutyTrackingScreen() {
               name="navigate-circle"
               size={80}
               color={isEmergencyMode ? "#EF4444" : "#007AFF"}
+              importantForAccessibility="no"
             />
           </View>
-          <Text style={styles.headingText}>{heading}°</Text>
+          <Text style={styles.headingText} maxFontSizeMultiplier={1.5}>
+            {heading}°
+          </Text>
         </View>
       </Animated.View>
 
@@ -248,10 +278,17 @@ export default function DutyTrackingScreen() {
         style={[styles.card, { borderColor: "#FECACA", borderWidth: 1 }]}
       >
         <View style={styles.headerRow}>
-          <Ionicons name="warning" size={28} color="#EF4444" />
-          <Text style={styles.cardTitle}>Kaza / Düşme Sensörleri</Text>
+          <Ionicons
+            name="warning"
+            size={28}
+            color="#EF4444"
+            importantForAccessibility="no"
+          />
+          <Text style={styles.cardTitle} maxFontSizeMultiplier={1.5}>
+            Kaza / Düşme Sensörleri
+          </Text>
         </View>
-        <Text style={styles.desc}>
+        <Text style={styles.desc} maxFontSizeMultiplier={1.5}>
           İvmeölçer ve DeviceMotion aktif. Düşme veya sert sallama algılanırsa
           yardım çağrılır.
         </Text>
@@ -269,8 +306,15 @@ export default function DutyTrackingScreen() {
         <TouchableOpacity
           style={styles.testBtn}
           onPress={() => triggerEmergency("Manuel Test Sinyali")}
+          accessible={true} // 🔥 ERİŞİLEBİLİRLİK
+          accessibilityRole="button"
+          accessibilityLabel="Acil durum sinyalini test et"
+          accessibilityHint="Manuel olarak idareye test sinyali göndermek için çift dokunun."
         >
-          <Text style={{ color: "#EF4444", fontWeight: "bold" }}>
+          <Text
+            style={{ color: "#EF4444", fontWeight: "bold" }}
+            maxFontSizeMultiplier={1.5}
+          >
             Acil Durum Sinyalini Test Et
           </Text>
         </TouchableOpacity>
@@ -278,6 +322,7 @@ export default function DutyTrackingScreen() {
 
       {/* DİĞER KARTLAR (Toplantı & Adım) */}
       <View style={{ flexDirection: "row", gap: 10, marginBottom: 15 }}>
+        {/* ERİŞİLEBİLİRLİK: Tüm kart mantıksal gruplandı */}
         <View
           style={[
             styles.card,
@@ -287,31 +332,68 @@ export default function DutyTrackingScreen() {
               backgroundColor: isMeetingMode ? "#f5f4e5" : "#FFF",
             },
           ]}
+          accessible={true}
+          accessibilityRole="summary"
+          accessibilityLabel={`Toplantı Modu. Şu an ${isMeetingMode ? "Aktif" : "Kapalı"}. Cihazı ters çevirerek değiştirebilirsiniz.`}
         >
           <Ionicons
             name={isMeetingMode ? "volume-mute" : "volume-high"}
             size={24}
             color="#e8da12"
+            importantForAccessibility="no"
           />
-          <Text style={{ fontWeight: "bold", marginTop: 5, color: "#d8b60e" }}>
+          <Text
+            style={{ fontWeight: "bold", marginTop: 5, color: "#d8b60e" }}
+            maxFontSizeMultiplier={1.5}
+          >
             Toplantı Modu
           </Text>
-          <Text style={{ fontSize: 12, color: "#666" }}>Ters Çevir</Text>
+          <Text
+            style={{ fontSize: 12, color: "#666" }}
+            maxFontSizeMultiplier={1.5}
+          >
+            Ters Çevir
+          </Text>
         </View>
-        <View style={[styles.card, { flex: 1, marginBottom: 0 }]}>
-          <Ionicons name="footsteps" size={24} color="#10B981" />
-          <Text style={{ fontWeight: "bold", marginTop: 5 }}>
+
+        {/* ERİŞİLEBİLİRLİK: Adımsayar mantıksal gruplandı */}
+        <View
+          style={[styles.card, { flex: 1, marginBottom: 0 }]}
+          accessible={true}
+          accessibilityRole="summary"
+          accessibilityLabel={`Nöbet Adımsayarı. Attığınız adım sayısı: ${stepCount}`}
+        >
+          <Ionicons
+            name="footsteps"
+            size={24}
+            color="#10B981"
+            importantForAccessibility="no"
+          />
+          <Text
+            style={{ fontWeight: "bold", marginTop: 5 }}
+            maxFontSizeMultiplier={1.5}
+          >
             {stepCount} Adım
           </Text>
-          <Text style={{ fontSize: 12, color: "#666" }}>Pedometer</Text>
+          <Text
+            style={{ fontSize: 12, color: "#666" }}
+            maxFontSizeMultiplier={1.5}
+          >
+            Pedometer
+          </Text>
         </View>
       </View>
 
-      {/* CANLI SİSTEM LOGLARI (SİNYALİN GİTTİĞİNİ BURADAN ANLAYACAKSIN) */}
+      {/* CANLI SİSTEM LOGLARI */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>📡 Canlı Sensör & Sinyal Logları</Text>
+        <Text style={styles.cardTitle} maxFontSizeMultiplier={1.5}>
+          📡 Canlı Sensör & Sinyal Logları
+        </Text>
         {systemLogs.length === 0 ? (
-          <Text style={{ color: "#999", fontStyle: "italic", marginTop: 10 }}>
+          <Text
+            style={{ color: "#999", fontStyle: "italic", marginTop: 10 }}
+            maxFontSizeMultiplier={1.5}
+          >
             Henüz bir hareket veya sinyal yok...
           </Text>
         ) : (
@@ -322,6 +404,7 @@ export default function DutyTrackingScreen() {
                 styles.logText,
                 log.includes("🚨") && { color: "#EF4444", fontWeight: "bold" },
               ]}
+              maxFontSizeMultiplier={1.5}
             >
               {log}
             </Text>
@@ -334,6 +417,12 @@ export default function DutyTrackingScreen() {
           styles.mainBtn,
           { backgroundColor: isDutyActive ? "#EF4444" : "#10B981" },
         ]}
+        // ERİŞİLEBİLİRLİK KODLARI
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={isDutyActive ? "Nöbeti Bitir" : "Nöbeti Başlat"}
+        accessibilityHint="Nöbet sensörlerini açmak veya kapatmak için çift dokunun."
+        accessibilityState={{ selected: isDutyActive }}
         onPress={() => {
           if (!selectedTeacherId)
             return Toast.show({
@@ -344,13 +433,19 @@ export default function DutyTrackingScreen() {
           if (isDutyActive) {
             updateStepCount(selectedTeacherId, stepCount);
             addLog("Nöbet Bitirildi. Veriler Kaydedildi.");
+            AccessibilityInfo.announceForAccessibility(
+              "Nöbet bitirildi, sensörler kapatıldı.",
+            );
           } else {
             addLog("Nöbet Başladı. Sensörler Dinleniyor...");
+            AccessibilityInfo.announceForAccessibility(
+              "Nöbet başladı, acil durum sensörleri aktif.",
+            );
           }
           setIsDutyActive(!isDutyActive);
         }}
       >
-        <Text style={styles.mainBtnText}>
+        <Text style={styles.mainBtnText} maxFontSizeMultiplier={1.5}>
           {isDutyActive ? "Nöbeti Bitir" : "Nöbeti Başlat"}
         </Text>
       </TouchableOpacity>

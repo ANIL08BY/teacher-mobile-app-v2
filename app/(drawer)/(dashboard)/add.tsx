@@ -147,7 +147,6 @@ export default function AddScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      // GÜNCELLENDİ: Ayarlara yönlendirme
       Alert.alert(
         "İzin Reddedildi",
         "Profil fotoğrafı eklemek için galeri erişim izni gereklidir.",
@@ -167,7 +166,6 @@ export default function AddScreen() {
     if (!result.canceled) setTAvatar(result.assets[0].uri);
   };
 
-  // Rehberden Kişi Seçme Motoru
   const handlePickContact = async () => {
     try {
       const { status } = await Contacts.requestPermissionsAsync();
@@ -190,11 +188,9 @@ export default function AddScreen() {
           setTSurname(contact.lastName.replace(/[0-9]/g, ""));
 
         if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-          // Numaradaki boşluk, tire ve parantezleri temizle
           const rawPhone = contact.phoneNumbers[0].number || "";
           let cleanPhone = rawPhone.replace(/[^0-9]/g, "");
 
-          // +90 veya 90 ile başlıyorsa temizle ve 0 ekle
           if (cleanPhone.startsWith("90") && cleanPhone.length === 12) {
             cleanPhone = "0" + cleanPhone.substring(2);
           } else if (cleanPhone.length === 10 && !cleanPhone.startsWith("0")) {
@@ -236,7 +232,6 @@ export default function AddScreen() {
     );
   }
 
-  // Bildirim gönderme motoru
   const sendPushNotification = async (
     expoPushToken: string,
     title: string,
@@ -391,6 +386,10 @@ export default function AddScreen() {
           style={styles.avatarContainer}
           onPress={pickImage}
           activeOpacity={0.8}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Profil Fotoğrafı Seç"
+          accessibilityHint="Galeriden öğretmenin profil fotoğrafını seçmek için dokunun."
         >
           {tAvatar ? (
             <Image source={{ uri: tAvatar }} style={styles.avatar} />
@@ -406,7 +405,6 @@ export default function AddScreen() {
         <Text style={styles.avatarHint}>Fotoğraf Seçmek İçin Dokunun</Text>
       </View>
 
-      {/* Rehberden Çek Butonu */}
       <View style={styles.headerWithButton}>
         <Text style={[styles.sectionHeader, { marginBottom: 0 }]}>
           Temel Bilgiler
@@ -414,24 +412,35 @@ export default function AddScreen() {
         <TouchableOpacity
           style={styles.pickContactBtn}
           onPress={handlePickContact}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Rehberden Kişi Seç"
+          accessibilityHint="Telefon rehberinizi açarak hızlıca personel bilgilerini doldurmak için dokunun."
         >
           <Ionicons name="people-circle" size={20} color="#120ee2" />
           <Text style={styles.pickContactBtnText}>Rehberden Seç</Text>
         </TouchableOpacity>
       </View>
 
+      {/* 🔥 ERİŞİLEBİLİRLİK (ACCESSIBILITY) KODLARI EKLENDİ */}
       <TextInput
         style={styles.input}
         placeholder="Ad *"
         value={tName}
         onChangeText={(text) => setTName(text.replace(/[0-9]/g, ""))}
         autoCapitalize="words"
+        accessible={true}
+        accessibilityLabel="Öğretmen Adı Giriş Alanı. Zorunlu alan."
+        accessibilityHint="Yeni öğretmenin adını girmek için çift dokunun."
       />
       <TextInput
         style={styles.input}
         placeholder="Soyad *"
         value={tSurname}
         onChangeText={(text) => setTSurname(text.replace(/[0-9]/g, ""))}
+        accessible={true}
+        accessibilityLabel="Öğretmen Soyadı Giriş Alanı. Zorunlu alan."
+        accessibilityHint="Yeni öğretmenin soyadını girmek için çift dokunun."
       />
       <TextInput
         style={styles.input}
@@ -440,6 +449,9 @@ export default function AddScreen() {
         onChangeText={(text) => setTTcNo(text.replace(/[^0-9]/g, ""))}
         keyboardType="numeric"
         maxLength={11}
+        accessible={true}
+        accessibilityLabel="TC Kimlik Numarası Giriş Alanı. Zorunlu alan."
+        accessibilityHint="11 haneli TC kimlik numarasını girmek için çift dokunun."
       />
 
       <View
@@ -478,6 +490,10 @@ export default function AddScreen() {
                 !tIsOnMaternityLeave && styles.radioBtnActive,
               ]}
               onPress={() => setTIsOnMaternityLeave(false)}
+              accessible={true}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: !tIsOnMaternityLeave }}
+              accessibilityLabel="Aktif Çalışıyor"
             >
               <Text
                 style={{
@@ -497,6 +513,10 @@ export default function AddScreen() {
                 },
               ]}
               onPress={() => setTIsOnMaternityLeave(true)}
+              accessible={true}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: tIsOnMaternityLeave }}
+              accessibilityLabel="İzinde veya Raporlu"
             >
               <Text
                 style={{
@@ -519,6 +539,9 @@ export default function AddScreen() {
             placeholder="Eşinin Çalıştığı Kurum / İl"
             value={tSpouseInstitution}
             onChangeText={setTSpouseInstitution}
+            accessible={true}
+            accessibilityLabel="Eşinin Çalıştığı Kurum Giriş Alanı"
+            accessibilityHint="Eşinin görev yaptığı kurumu veya ili yazmak için çift dokunun."
           />
           <TextInput
             style={[styles.input, { marginBottom: 0 }]}
@@ -529,6 +552,9 @@ export default function AddScreen() {
             }
             keyboardType="numeric"
             maxLength={2}
+            accessible={true}
+            accessibilityLabel="Çocuk Sayısı Giriş Alanı"
+            accessibilityHint="Personelin sahip olduğu çocuk sayısını girmek için çift dokunun."
           />
         </View>
       )}
@@ -569,6 +595,8 @@ export default function AddScreen() {
             onChangeText={(text) => setTAge(text.replace(/[^0-9]/g, ""))}
             placeholder="Örn: 35"
             maxLength={2}
+            accessible={true}
+            accessibilityLabel="Öğretmen Yaşı Giriş Alanı"
           />
         </View>
         <View style={{ flex: 1 }}>
@@ -582,6 +610,9 @@ export default function AddScreen() {
             }
             placeholder="Örn: 10"
             maxLength={2}
+            accessible={true}
+            accessibilityLabel="Kıdem Yılı Giriş Alanı"
+            accessibilityHint="Personelin meslekteki kıdem yılını girmek için çift dokunun."
           />
         </View>
       </View>
@@ -600,6 +631,10 @@ export default function AddScreen() {
             key={t}
             style={[styles.titleBadge, tTitle === t && styles.titleBadgeActive]}
             onPress={() => setTTitle(t)}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityState={{ selected: tTitle === t }}
+            accessibilityLabel={`${t} unvanını seç`}
           >
             <Text
               style={{
@@ -621,6 +656,9 @@ export default function AddScreen() {
         onChangeText={(text) => setTUsedLeaveDays(text.replace(/[^0-9]/g, ""))}
         placeholder="Örn: 5"
         maxLength={3}
+        accessible={true}
+        accessibilityLabel="Kullanılan İzin Günü Giriş Alanı"
+        accessibilityHint="Yıllık 30 günlük haktan kullanılan gün sayısını yazmak için çift dokunun."
       />
 
       <View
@@ -636,6 +674,9 @@ export default function AddScreen() {
         <TouchableOpacity
           onPress={() => setIsAddingClub(true)}
           style={styles.addClubBtnSmall}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Yeni Kulüp Ekle Butonu"
         >
           <Ionicons name="add-circle" size={18} color="#10B981" />
           <Text style={styles.addClubBtnText}>Yeni Kulüp</Text>
@@ -649,16 +690,24 @@ export default function AddScreen() {
             placeholder="Kulüp Adı"
             value={newClubName}
             onChangeText={setNewClubName}
+            accessible={true}
+            accessibilityLabel="Yeni Kulüp Adı Giriş Alanı"
           />
           <TouchableOpacity
             style={styles.confirmClubBtn}
             onPress={handleAddNewClub}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Kulübü Onayla ve Ekle"
           >
             <Text style={{ color: "white", fontWeight: "bold" }}>Ekle</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.cancelClubBtn}
             onPress={() => setIsAddingClub(false)}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Kulüp Eklemeyi İptal Et"
           >
             <Ionicons name="close" size={24} color="#EF4444" />
           </TouchableOpacity>
@@ -686,6 +735,13 @@ export default function AddScreen() {
                 isTaken && !isSelected && styles.clubBtnTaken,
               ]}
               onPress={() => setTClub(isSelected ? "" : c)}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityState={{
+                selected: isSelected,
+                disabled: isTaken && !isSelected,
+              }}
+              accessibilityLabel={`${c} Kulübü. ${isTaken && !isSelected ? "Başka bir öğretmene atanmış." : "Seçmek için çift dokunun."}`}
             >
               <Text
                 style={[
@@ -711,6 +767,8 @@ export default function AddScreen() {
         onChangeText={(text) => setTPhone(text.replace(/[^0-9]/g, ""))}
         keyboardType="phone-pad"
         maxLength={11}
+        accessible={true}
+        accessibilityLabel="Telefon Numarası Giriş Alanı"
       />
 
       <View style={{ zIndex: 2000, marginBottom: 15, marginTop: 10 }}>
@@ -739,6 +797,8 @@ export default function AddScreen() {
           placeholder="Özel Nöbet Yeri"
           value={customDutyLocation}
           onChangeText={setCustomDutyLocation}
+          accessible={true}
+          accessibilityLabel="Özel Nöbet Yeri Giriş Alanı"
         />
       )}
 
@@ -748,9 +808,18 @@ export default function AddScreen() {
         value={tAddress}
         onChangeText={setTAddress}
         multiline
+        accessible={true}
+        accessibilityLabel="Adres Giriş Alanı"
       />
 
-      <Pressable style={styles.saveBtn} onPress={handleSave}>
+      <Pressable
+        style={styles.saveBtn}
+        onPress={handleSave}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Personeli Kaydet"
+        accessibilityHint="Girdiğiniz bilgileri sisteme kaydetmek için çift dokunun."
+      >
         <Text style={styles.btnText}>Personeli Kaydet</Text>
       </Pressable>
     </ScrollView>
@@ -767,7 +836,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  // Başlık ve buton için yan yana düzen
   headerWithButton: {
     flexDirection: "row",
     justifyContent: "space-between",
