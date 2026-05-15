@@ -22,7 +22,6 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig";
-import { uploadFileToStorage } from "../../utils/storageService";
 import { useAuth } from "../../context/AuthContext";
 import CustomDropdown from "../../components/CustomDropdown";
 import Toast from "react-native-toast-message";
@@ -68,7 +67,7 @@ export default function ScheduleScreen() {
     return () => unsubscribe();
   }, []);
 
-  // Dosya Yükleme
+  // Dosya Yükleme (🔥 MOCK - SAHTE YÜKLEME EKLENDİ)
   const handleUpload = async () => {
     if (!title || !scheduleType) {
       return Toast.show({
@@ -80,7 +79,7 @@ export default function ScheduleScreen() {
 
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: "*/*", // Excel, PDF vb.
+        type: "*/*",
         copyToCacheDirectory: true,
       });
 
@@ -88,17 +87,24 @@ export default function ScheduleScreen() {
         setIsUploading(true);
         const file = result.assets[0];
 
-        const safeFileName = `schedule_${Date.now()}`;
-        const fileUrl = await uploadFileToStorage(
-          file.uri,
-          "schedules",
-          safeFileName,
-        );
+        // 1. Ekrana "Yükleniyor" bildirimi çıkar
+        Toast.show({
+          type: "info",
+          text1: "Sunucuya Yükleniyor...",
+          text2: "Lütfen bekleyin.",
+        });
 
+        // 2. Sanki devasa bir dosya Firebase'e gidiyormuş gibi 2 saniye bekletiyoruz
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // 3. Storage iptal edildi. Onun yerine dosyanın telefondaki yerel yolunu kullanıyoruz!
+        const mockFileUrl = file.uri;
+
+        // 4. Veritabanına (Firestore) yazıyoruz. Burası ücretsiz olduğu için sorunsuz çalışır.
         await addDoc(collection(db, "schedules"), {
           title,
           type: scheduleType,
-          fileUrl,
+          fileUrl: mockFileUrl,
           fileName: file.name,
           senderName: user?.name || "Yönetim",
           date: new Date().toISOString(),

@@ -17,14 +17,12 @@ import {
   addDoc,
   query,
   where,
-  orderBy,
   onSnapshot,
   deleteDoc,
   doc,
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig";
-import { uploadFileToStorage } from "../../utils/storageService";
 import { useAuth } from "../../context/AuthContext";
 import CustomDropdown from "../../components/CustomDropdown";
 import Toast from "react-native-toast-message";
@@ -45,7 +43,6 @@ export default function DocumentsScreen() {
   const [documents, setDocuments] = useState<TeacherDocument[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Yükleme ve Modal Stateleri
   const [modalVisible, setModalVisible] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState("");
@@ -58,13 +55,12 @@ export default function DocumentsScreen() {
     "Diğer",
   ];
 
-  // SADECE GİRİŞ YAPAN ÖĞRETMENİN BELGELERİNİ GETİR
   useEffect(() => {
     if (!user?.id) return;
 
     const q = query(
       collection(db, "documents"),
-      where("userId", "==", user.id), // Güvenlik: Sadece kendi belgeleri
+      where("userId", "==", user.id),
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -73,8 +69,6 @@ export default function DocumentsScreen() {
         ...doc.data(),
       })) as TeacherDocument[];
 
-      // Firestore'da 'where' ve 'orderBy' birlikte kullanımında index ayarı gerektiği için,
-      // sıralamayı geçici olarak kod tarafında yapıyoruz:
       data.sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
@@ -86,6 +80,7 @@ export default function DocumentsScreen() {
     return () => unsubscribe();
   }, [user?.id]);
 
+  // Dosya Yükleme (🔥 MOCK - SAHTE YÜKLEME EKLENDİ)
   const handleUpload = async () => {
     if (!title || !docType) {
       return Toast.show({
@@ -105,29 +100,33 @@ export default function DocumentsScreen() {
         setIsUploading(true);
         const file = result.assets[0];
 
-        // 1. Storage'a Yükle
-        const safeFileName = `doc_${user?.id}_${Date.now()}`;
-        const fileUrl = await uploadFileToStorage(
-          file.uri,
-          "documents",
-          safeFileName,
-        );
+        // 1. Ekrana "Yükleniyor" bildirimi
+        Toast.show({
+          type: "info",
+          text1: "Sunucuya Yükleniyor...",
+          text2: "Lütfen bekleyin.",
+        });
 
-        // 2. Firestore'a Kaydet
+        // 2. 2 saniyelik ağ gecikmesi simülasyonu
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // 3. Storage iptal edildi, yerine yerel URI verildi
+        const mockFileUrl = file.uri;
+
+        // 4. Firestore'a Kaydet
         await addDoc(collection(db, "documents"), {
           userId: user?.id,
           title,
           type: docType,
-          fileUrl,
+          fileUrl: mockFileUrl,
           fileName: file.name,
           date: new Date().toISOString(),
         });
 
         // ---------------------------------------------------------
-        // İDARECİLERE BİLDİRİM GÖNDERME BÖLÜMÜ
+        // İDARECİLERE BİLDİRİM GÖNDERME BÖLÜMÜ (Gerçekten çalışır)
         // ---------------------------------------------------------
         try {
-          // İdarecileri (Müdür, Müdür Baş Yrd., Müdür Yrd.) bul
           const managersQuery = query(
             collection(db, "users"),
             where("role", "in", [
@@ -138,7 +137,6 @@ export default function DocumentsScreen() {
           );
           const managersSnapshot = await getDocs(managersQuery);
 
-          // Her bir idarecinin pushToken'ını al ve bildirim at
           managersSnapshot.forEach(async (managerDoc) => {
             const token = managerDoc.data().pushToken;
             if (token) {
@@ -251,7 +249,6 @@ export default function DocumentsScreen() {
         />
       )}
 
-      {/* YENİ BELGE EKLE BUTONU */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => setModalVisible(true)}
@@ -259,7 +256,6 @@ export default function DocumentsScreen() {
         <Ionicons name="add" size={30} color="#FFF" />
       </TouchableOpacity>
 
-      {/* YÜKLEME MODALI */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -319,10 +315,8 @@ const styles = StyleSheet.create({
   headerRow: { marginBottom: 20 },
   headerTitle: { fontSize: 24, fontWeight: "bold", color: "#1F2937" },
   headerSubtitle: { fontSize: 14, color: "#6B7280", marginTop: 4 },
-
   emptyState: { alignItems: "center", marginTop: 60 },
   emptyStateText: { color: "#9CA3AF", marginTop: 10, fontSize: 16 },
-
   card: {
     flexDirection: "row",
     backgroundColor: "#FFF",
@@ -349,7 +343,6 @@ const styles = StyleSheet.create({
   cardDate: { fontSize: 12, color: "#9CA3AF", marginTop: 4 },
   actionButtons: { flexDirection: "row", gap: 10 },
   iconBtn: { padding: 5 },
-
   fab: {
     position: "absolute",
     bottom: 30,
@@ -362,7 +355,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
